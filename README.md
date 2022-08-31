@@ -13,3 +13,7 @@ Code is somewhat decent, but also has infrequent updates
 - Better API utilization like grabbing user info without looping through
 - More Anilist Commands
 - Logging, maybe?
+
+# Requirements
+Python 3.6+
+Git (to install beta branch of nextcord)
