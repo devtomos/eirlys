@@ -1,11 +1,6 @@
 import nextcord, json, asyncpg, asyncio
 from nextcord.ext import commands
 
-#|----------TODO List----------|
-
-# Add Airing Schedule back to .anime
-# Error handlers to normal commands
-
 #|----------Normal Commands----------|
 from cogs.normalCommands.general import General, GeneralDB, RunTimes
 from cogs.normalCommands.anilist import Anilist, AnilistDB
