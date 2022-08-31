@@ -1,0 +1,23 @@
+{
+    "Miumi": {
+        "Miumi": "BOT_TOKEN",
+        "Colour": "0x5D3FD3",
+        "Owner": 790506160523706388
+    },
+
+    "anilist": {
+        "ID": "ANILIST_OAUTH_ID",
+        "Secret": "ANILIST_OAUTH_SECRET",
+        "Redirect": "ANILIST_OAUTH_REDIRECT"
+    },
+
+    "Database": {
+        "DNS": "DB_DNS",
+        "URL": "DB_URL"
+    },
+    
+    "Spotify": {
+        "ID": "SPOTIFY_ID",
+        "Secret": "SPOTIFY_SECRET"
+    }
+}

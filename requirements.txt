@@ -1,0 +1,4 @@
+asyncpg==0.25.0
+git+https://github.com/nextcord/nextcord
+requests==2.26.0
+asyncpraw==7.5.0
