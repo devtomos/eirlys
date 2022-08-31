@@ -1,4 +1,5 @@
 # Miumi - A Multipurpose Discord Bot
+Code is somewhat decent, but also has infrequent updates
 
 # Features
 - Anilist API utilization
