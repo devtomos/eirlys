@@ -15,5 +15,5 @@ Code is somewhat decent, but also has infrequent updates
 - Logging, maybe?
 
 # Requirements
-Python 3.6+
-Git (to install beta branch of nextcord)
+- Python 3.6+
+- Git (to install beta branch of nextcord)
