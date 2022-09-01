@@ -4,7 +4,7 @@ Code is somewhat decent, but also has infrequent updates
 # Features
 - Anilist API utilization
 - General Commands like Avatar, Banner, Information, Server Information etc
-- Slash Commands and Text Commands (Slash Commands coming soon)
+- Slash Commands and Text Commands
 - Uses Discord latest components (Drop down lists, buttons)
 
 # TODO / TO ADD
