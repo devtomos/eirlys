@@ -1,0 +1,30 @@
+{
+    "Miumi": {
+        "Miumi": "BOT_TOKEN",
+        "Colour": "0x5D3FD3",
+        "Owner": 790506160523706388,
+        "Bot_ID": 795916241193140244
+    },
+
+    "anilist": {
+        "ID": "ANILIST_OAUTH_ID",
+        "Secret": "ANILIST_OAUTH_SECRET",
+        "Redirect": "ANILIST_OAUTH_REDIRECT"
+    },
+
+    "Database": {
+        "DNS": "DATABASE_DNS",
+        "URL": "DATABASE_URL"
+    },
+    
+    "Spotify": {
+        "ID": "SPOTIFY_ID",
+        "Secret": "SPOTIFY_SECRET"
+    },
+
+    "Reddit": {
+        "ID": "REDDIT_ID",
+        "CLIENT_SECRET": "REDDIT_SECRET",
+        "USER_AGENT": "REDDIT_AGENT"
+    }
+}
