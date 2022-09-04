@@ -28,5 +28,7 @@
         "ID": "REDDIT_ID",
         "CLIENT_SECRET": "REDDIT_SECRET",
         "USER_AGENT": "REDDIT_AGENT"
-    }
+    },
+    
+    "AMQ": ["This was a joke with friends, feel free to remove"]
 }
