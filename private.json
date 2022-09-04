@@ -13,8 +13,10 @@
     },
 
     "Database": {
-        "DNS": "DATABASE_DNS",
-        "URL": "DATABASE_URL"
+        "Host": "HOST",
+        "Username": "USERNAME",
+        "Password": "PASSWORD",
+        "Database": "DB_NAME",
     },
     
     "Spotify": {
