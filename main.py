@@ -25,6 +25,7 @@ cogs = {General: True, Anilist: True, SLAnilist: True, SLGeneral: True, ErrorHan
 DBs = {AnilistDB: True, SLAnilistDB: True, AniClassDB: True}
 
 #|----------Print when bot is online----------|
+
 @client.event
 async def on_ready():
     print(f"| -- {client.user.name}#{client.user.discriminator} -- ONLINE")
@@ -53,6 +54,7 @@ async def on_ready():
             await DB(cursor, sql)
 
 #|----------Reset DB every 5 minutes----------|
+
 async def refreshDB():
     await client.wait_until_ready()
     while not client.is_closed():
@@ -64,4 +66,4 @@ async def refreshDB():
 if __name__ == "__main__":
     client.loop.create_task(refreshDB())
     client.loop.create_task(RunTimes(client))
-    client.run(token['Miumi']['Miumi'])
+    client.run(token['Miumi']['Miumii'])
