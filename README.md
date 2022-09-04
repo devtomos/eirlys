@@ -16,4 +16,4 @@ Code is somewhat decent, but also has infrequent updates
 # Requirements
 - Python 3.6+
 - Git (to install beta branch of nextcord)
-- Create a database with Planetscale and add everything in privat.json
+- Create a database with Planetscale and add host, user etc in private.json
