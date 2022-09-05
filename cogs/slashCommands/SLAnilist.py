@@ -3,10 +3,9 @@ from nextcord.ext import commands
 from nextcord import slash_command, Interaction, SlashOption
 from classes.anilistClasses import *
 
-async def SLAnilistDB(conn1, conn2):
-    global sql, cursor
-    cursor = conn1
-    sql = conn2
+async def SLAnilistDB(connect):
+    global sql
+    sql = connect
     return
 
 class SLAnilist(commands.Cog):
@@ -16,8 +15,7 @@ class SLAnilist(commands.Cog):
     #|----------Connect Anilist----------|
     @slash_command("aniset", "Set your anilist account to see your scores!")
     async def aniset(self, interaction: Interaction, anilist_name: str = SlashOption("anilist_username", "Your anilist username", required=True)):
-        cursor.execute("SELECT * FROM anilist WHERE discord_id = '%s'", (interaction.user.id,))
-        user = cursor.fetchone()
+        user = await sql.fetchval("SELECT anilist_name FROM anilist WHERE discord_id = $1", interaction.user.id)
         anilist = await Functions.User(anilist_name)
 
         if anilist[0]['errorCode'] != 200:
@@ -27,22 +25,20 @@ class SLAnilist(commands.Cog):
         embed.set_image(url=anilist[0]['avatar'])
 
         if user is None:
-            cursor.execute("INSERT INTO anilist(discord_id, discord_name, anilist_name, anilist_id, anilist_url) VALUES (%s, %s, %s, %s, %s)", (interaction.user.id, interaction.user.display_name, anilist[0]['name'], anilist[0]['id'], anilist[0]['url']))
+            await sql.execute("INSERT INTO anilist(discord_id, discord_name, anilist_name, anilist_id, anilist_url) VALUES ($1, $2, $3, $4, $5)", interaction.user.id, interaction.user.display_name, anilist[0]['name'], anilist[0]['id'], anilist[0]['url'])
         else:
-            cursor.execute("UPDATE anilist SET discord_name = %s, anilist_name = %s, anilist_id = %s, anilist_url = %s WHERE discord_id = %s", (interaction.user.display_name, anilist[0]['name'], anilist[0]['id'], anilist[0]['url'], interaction.user.id))
-        sql.commit()
+            await sql.execute("UPDATE anilist SET discord_name = $1, anilist_name = $2, anilist_id = $3, anilist_url = $4 WHERE discord_id = $5", interaction.user.display_name, anilist[0]['name'], anilist[0]['id'], anilist[0]['url'], interaction.user.id)
         await interaction.send(embed=embed)
 
     #|----------View Anilist Profile----------|
     @slash_command("user", "View Information about yourself or someone from the Anilist API")
     async def user(self, interaction: Interaction, anilist_name: str = SlashOption("anilist_username", "An Anilist username", required=False)):
-        if username is None:
-            cursor.execute("SELECT anilist_name FROM anilist WHERE discord_id = %s", (interaction.user.id,))
-            username = cursor.fetchone()[0]
-            if username is None:
+        if anilist_name is None:
+            anilist_name = await sql.fetchval("SELECT anilist_name FROM anilist WHERE discord_id = $1", interaction.user.id)
+            if anilist_name is None:
                 return await interaction.send("Looks like you're not in the database. Use .aniset <anilist_name> to set!")
 
-        anilist = await Functions.User(username)
+        anilist = await Functions.User(anilist_name)
 
         if anilist[0]['errorCode'] != 200:
             return await interaction.send("An Error has occured. Did you input their name correctly?")
@@ -68,14 +64,14 @@ class SLAnilist(commands.Cog):
     #|----------View Information For Anime----------|
     @slash_command("anime", "View Information about an Anime")
     async def anime(self, interaction: Interaction, anime_name: str = SlashOption("anime_name", "Input an Anime name, then choose from a selection", required=True)):
-        anime = ' '.join(anime); members = []; dbMembs = []; cursor.execute("SELECT anilist_name, discord_id FROM anilist"); db = cursor.fetchall()
+        members = []; dbMembs = []; db = await sql.fetch("SELECT anilist_name, discord_id FROM anilist")
         for member in interaction.guild.members:
             members.append(member.id)
 
         for key, value in enumerate(db):
-            if db[key][1] in members:
-                dbMembs.append(db[key][0])
-        relation = await Functions.Relations(anime, 'ANIME')
+            if db[key]['discord_id'] in members:
+                dbMembs.append(db[key]['anilist_name'])
+        relation = await Functions.Relations(anime_name, 'ANIME')
 
         if relation[1][0] == 404:
             return await interaction.send("Error Occured. Did you type the name correctly?")
@@ -84,14 +80,14 @@ class SLAnilist(commands.Cog):
     #|----------View Information For Manga----------|
     @slash_command("manga", "View Information about a Manga")
     async def manga(self, interaction: Interaction, manga_name: str = SlashOption("manga_name", "Input an Manga name, then choose from a selection", required=True)):
-        manga = ' '.join(manga); members = []; dbMembs = []; cursor.execute("SELECT anilist_name, discord_id FROM anilist"); db = cursor.fetchall()
+        members = []; dbMembs = []; db = await sql.fetch("SELECT anilist_name, discord_id FROM anilist")
         for member in interaction.guild.members:
             members.append(member.id)
 
         for key, value in enumerate(db):
-            if db[key][1] in members:
-                dbMembs.append(db[key][0])
-        relation = await Functions.Relations(manga, 'MANGA')
+            if db[key]['discord_id'] in members:
+                dbMembs.append(db[key]['anilist_name'])
+        relation = await Functions.Relations(manga_name, 'MANGA')
 
         if relation[1][0] == 404:
             return await interaction.send("Error Occured. Did you type the name correctly?")

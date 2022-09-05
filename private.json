@@ -16,7 +16,7 @@
         "Host": "HOST",
         "Username": "USERNAME",
         "Password": "PASSWORD",
-        "Database": "DB_NAME",
+        "Database": "DB_NAME"
     },
     
     "Spotify": {

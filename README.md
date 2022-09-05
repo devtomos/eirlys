@@ -6,12 +6,12 @@ Code is somewhat decent, but also has infrequent updates
 - General Commands like Avatar, Banner, Information, Server Information etc
 - Slash Commands and Text Commands
 - Uses Discord latest components (Drop down lists, buttons)
-- Uses PlanetScale for Database
+- Uses LocalDB (Postgres)
 - Added Basic error handling
 
 # TODO / TO ADD
 - Better API utilization like grabbing user info without looping through
-- More Anilist Commands
+- More Anilist Commands + Server Settings
 
 # Requirements
 - Python 3.6+

@@ -10,14 +10,16 @@ url = 'https://graphql.anilist.co' #Default URL for Anilist
 checkFor = ['`Chapter          :` **None**\n', '`Volumes          :` **None**\n', '`All Episodes     :` **None**\n', '`Start Date       :` **None**\n', '`End Date         :` **None**\n', '`Popularity       :` **0**\n', '`Favourites       :` **0**\n', '`Genres           :` ****\n\n', '`Repeating        :`\n> ****\n\n', '`Completed        :`\n> ****\n\n', '`Current          :`\n> ****\n\n', '`Dropped          :`\n> ****\n\n', '`Planning         :`\n> ****\n\n']
 affs = {}
 
-async def AniClassDB(conn1, conn2):
-    global sql, cursor
-    cursor = conn1
-    sql = conn2
+async def AniClassDB(connect):
+    global sql
+    sql = connect
     return
 
+
+#Original Code
 #https://github.com/jerome-ceccato/andre/blob/1ac2500605c18e9da6cc044793af157d8d40fc73/commands/mal.py
 def pearson(x, y):
+    
     """
     Pearson's correlation implementation without scipy or numpy.
     :param list x: Dataset x
@@ -37,6 +39,9 @@ def pearson(x, y):
     num = sum([a * b for a, b in zip(xm, ym)])
     den = Decimal(sum(sx) * sum(sy)).sqrt()
 
+    # Stdev of one (or both) of the scores is zero if the
+    # denominator is zero. Dividing by zero is impossible, so
+    # just check if it is zero before we tell it to divide.
     if den == 0.0:
         raise Exception()
 
@@ -322,6 +327,19 @@ class Queries():
         query($search: String) {
         Staff(search: $search) {
             id
+            name { full }
+            image { large }
+            primaryOccupations
+            siteUrl
+            favourites
+            staffMedia { nodes {
+                title { romaji }
+                siteUrl
+            }}
+            characters { edges {
+                name
+                media { title {romaji} siteUrl }
+            }}
             }
         }'''
     
@@ -371,6 +389,11 @@ class Queries():
     affinity = """
     query ($userId: Int, $perChunk: Int, $type: MediaType) {
     MediaListCollection (userId: $userId, perChunk: $perChunk, type: $type) {
+        user {
+            name
+            avatar { large }
+            siteUrl
+        }
         lists {
             entries {
             status
@@ -587,16 +610,12 @@ class Functions():
         return informationDict, userDict, description
     
     async def Staff(name):
-        #STAFF IS NOT COMPLETE
         response = requests.post(url, json={'query': Queries.staff, 'variables': {'search': name}})
         request = response.json()
         data = request['data']['Staff']
-        
-        return pprint.pprint(request)
 
-        characters = data['characters']['nodes']
-        #data['staffMedia']['nodes']
-
+        characters = data['characters']['edges']
+        staffMedia = data['staffMedia']['nodes']
         staffDict = {
             'id': data['id'],
             'name': data['name']['full'],
@@ -604,9 +623,9 @@ class Functions():
             'favourites': data['favourites'],
             'url': data['siteUrl'],
             'avatar': data['image']['large'],
-            'voiced': [],
+            'voiced': characters,
             'directed': [],
-            'character': []}
+            'character': staffMedia}
 
         return staffDict
 
@@ -614,17 +633,18 @@ class Functions():
         response = requests.post(url, json={'query': Queries.affinity, 'variables': {'userId': loop_member, 'perChunk': 500, 'type': 'ANIME'}})
         request = response.json()
         data = request['data']['MediaListCollection']['lists']
+        userInfo = request['data']['MediaListCollection']['user']
 
-        affs[OGUser] = {}
-        affs[OGUser]['media'] = []
-        affs[OGUser]['scores'] = []
-        if OGUser == loop_member:
-            pass
-        else:
-            affs[loop_member] = {}
-            affs[loop_member]['all'] = []
-            affs[loop_member]['scores'] = []
-            affs[loop_member]['compared'] = []
+        if OGUser not in affs:
+            affs[OGUser] = {}
+            affs[OGUser]['ids'] = {}
+            affs[OGUser]['all'] = []
+
+        if loop_member != OGUser:
+            if loop_member not in affs:
+                affs[loop_member] = {}
+                affs[loop_member]['ids'] = {}
+                affs[loop_member]['all'], affs[loop_member]['shares'] = [], []
 
         dataClamp = len(data)-1
         totalClamp = max([dataClamp])
@@ -632,42 +652,35 @@ class Functions():
             if dataClamp >= 0:
                 lists = data[totalClamp]['entries']
                 for entry in lists:
-                    if entry['score'] == 0:
+                    if entry['score'] == 0 or entry['status'] == 'PLANNING':
                         pass
                     else:
                         if loop_member == OGUser:
-                            if entry['status'] != 'PLANNING':
-                                affs[OGUser]['media'].append(entry['mediaId'])
-                                affs[OGUser][entry["mediaId"]] = entry['score']
-                                affs[OGUser]['scores'].append(entry['score'])
-
+                            affs[OGUser]['all'].append(entry['mediaId'])
+                            affs[OGUser]['ids'][entry["mediaId"]] = entry['score']
                         else:
-                            if entry['status'] != 'PLANNING':
-                                affs[loop_member]['all'].append(entry['mediaId'])
-                                affs[loop_member]['scores'].append(entry['score'])
-                                affs[loop_member][entry['mediaId']] = entry['score']
+                            affs[loop_member]['all'].append(entry['mediaId'])
+                            affs[loop_member]['ids'][entry['mediaId']] = entry['score']
                 dataClamp -= 1
             totalClamp -= 1
-
-        if [loop_member] == allIDs[-1:]:
-            for user in allIDs:
-                if user == OGUser:
-                    pass
+        
+        if loop_member == OGUser:
+            dicts = {'name': userInfo['name'], 'url': userInfo['siteUrl'], 'avatar': userInfo['avatar']['large']}
+            return dicts
+        
+        if loop_member != OGUser:
+            for key in list(affs[loop_member]['ids']):
+                if key in affs[OGUser]['all']:
+                    affs[loop_member]['ids'][key] = [affs[OGUser]['ids'][key], affs[loop_member]['ids'][key]]
+                    affs[loop_member]['shares'].append(key)
                 else:
-                    for entry in affs[user]['all']:
-                        if entry in affs[OGUser]['media']:
-                            if affs[OGUser][entry] == affs[user][entry]:
-                                affs[user]['compared'].append(affs[user][entry])
+                    del affs[loop_member]['ids'][key]
             
-            for user in allIDs:
-                if user == OGUser:
-                    pass
-                else:
-                    try: test = pearson(affs[user]['scores'], affs[OGUser]['scores']); print(test)
-                    except: print(f"Error with - {user}")
-
-            """for keys in affs.keys():
-                if keys == OGUser:
-                    print(f"Amount In OGUser - {len(affs[keys]['media'])}")
-                else:
-                    print(f"Amount in {keys} COMPARED - {len(affs[keys]['compared'])}")"""
+            del affs[loop_member]['all']
+            values = affs[loop_member]['ids'].values()
+            try: score1, score2 = list(zip(*values)); affinity = pearson(score1, score2)
+            except: affinity = 0.0
+            userDict = {'details': {'aff': affinity, 'name': userInfo['name'], 'url': userInfo['siteUrl'], 'shares': len(affs[loop_member]['shares'])}}
+            del affs[loop_member]
+            return userDict
+    

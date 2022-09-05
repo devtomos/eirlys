@@ -1,6 +1,5 @@
-import nextcord, json, asyncpg, asyncio, os, MySQLdb, ssl
+import nextcord, json, asyncpg, asyncio
 from nextcord.ext import commands
-from dotenv import load_dotenv
 
 #|----------Normal Commands----------|
 
@@ -39,31 +38,13 @@ async def on_ready():
             client.add_cog(cog(client))
 
     #|----------Adding Databases----------|
-
-    sql = MySQLdb.connect(
-        host=token['Database']['Host'],
-        user=token['Database']['Username'],
-        passwd=token['Database']['Password'],
-        db=token['Database']['Database'],
-        ssl=ssl.PROTOCOL_TLSv1_2)
-
-    cursor = sql.cursor()
+    sql = await asyncpg.connect(user=token['Database']['Username'], host=token['Database']['Host'], database=token['Database']['Database'], password=token['Database']['Password'])
+    
     for DB in DBs:
         if DBs[DB] == True:
             print(f"| -- {DB.__name__} -- ONLINE")
-            await DB(cursor, sql)
-
-#|----------Reset DB every 5 minutes----------|
-
-async def refreshDB():
-    await client.wait_until_ready()
-    while not client.is_closed():
-        await asyncio.sleep(3000)
-        MySQLdb.connect(host=token['Database']['Host'], user=token['Database']['Username'], passwd=token['Database']['Password'],
-        db=token['Database']['Database'], ssl=ssl.PROTOCOL_TLSv1_2)
-        print("| -- Database has been reset")
+            await DB(sql)
 
 if __name__ == "__main__":
-    client.loop.create_task(refreshDB())
     client.loop.create_task(RunTimes(client))
-    client.run(token['Miumi']['Miumii'])
+    client.run(token['Miumi']['Miumi'])
