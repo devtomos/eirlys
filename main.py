@@ -1,50 +1,33 @@
-import nextcord, json, asyncpg, asyncio
+import nextcord, os, asyncpg, random
 from nextcord.ext import commands
+from dotenv import load_dotenv
 
-#|----------Normal Commands----------|
+#[+] Load Cogs From Files [+]#
+from src.cogs.slash.slashGeneral import SlashGeneral, sqlFunc
+from src.cogs.slash.slashAni import SlashAni
 
-from cogs.normalCommands.general import General, RunTimes
-from cogs.normalCommands.anilist import Anilist, AnilistDB
-from cogs.normalCommands.errorHandlers import ErrorHandlers
-from classes.anilistClasses import AniClassDB
+#[+] Load .ENV File [+]#
+load_dotenv()
 
-#|----------Slash Commands----------|
+#[+] Create Client Instance [+]#
+client = commands.Bot(help_command=None, intents=nextcord.Intents.all(), case_insensitive=True)
 
-from cogs.slashCommands.SLAnilist import SLAnilist, SLAnilistDB
-from cogs.slashCommands.SLGeneral import SLGeneral
+# _________________________________________________________________________________________________________________________________________________________________ #
 
-#|----------Setting Client and Token----------|
+#[+] Add Slash Cogs [+]#
+client.add_cog(SlashGeneral(client))
+client.add_cog(SlashAni(client))
 
-client = commands.Bot(command_prefix=".", help_command=None, intents=nextcord.Intents.all(), case_insensitive=True)
-privateFile = open('private.json'); token = json.loads(privateFile.read())
+# _________________________________________________________________________________________________________________________________________________________________ #
 
-#|----------Cog and DB Dicts----------|
-
-cogs = {General: True, Anilist: True, SLAnilist: True, SLGeneral: True, ErrorHandlers: True}
-DBs = {AnilistDB: True, SLAnilistDB: True, AniClassDB: True}
-
-#|----------Print when bot is online----------|
-
+#[+] Send Message When Bot Is Online [+]#
 @client.event
 async def on_ready():
-    print(f"| -- {client.user.name}#{client.user.discriminator} -- ONLINE")
-    await client.change_presence(status=nextcord.Status.online, activity = nextcord.Activity(name=f"Prefix is {client.command_prefix}", type=1, url="https://www.twitch.tv/aoi_asmr"))
+    print(f"[+] {client.user.name} Is Online")
+    await client.change_presence(status=nextcord.Status.online, activity = nextcord.Activity(name=f"Slash Commands", type=3))
+    await sqlFunc()
 
-    #|----------Adding Cogs----------|
+# _________________________________________________________________________________________________________________________________________________________________ #
 
-    for cog in cogs:
-        if cogs[cog] == True:
-            print(f"| -- {cog.__name__} -- ONLINE")
-            client.add_cog(cog(client))
-
-    #|----------Adding Databases----------|
-    sql = await asyncpg.connect(user=token['Database']['Username'], host=token['Database']['Host'], database=token['Database']['Database'], password=token['Database']['Password'])
-    
-    for DB in DBs:
-        if DBs[DB] == True:
-            print(f"| -- {DB.__name__} -- ONLINE")
-            await DB(sql)
-
-if __name__ == "__main__":
-    client.loop.create_task(RunTimes(client))
-    client.run(token['Miumi']['Miumi'])
+if __name__ == '__main__':
+    client.run(os.getenv('TOKEN'))
