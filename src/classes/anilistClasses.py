@@ -457,23 +457,15 @@ class Functions:
 
 # _________________________________________________________________________________________________________________________________________________________________ #
 
-    #[+] View The Affinity For All Within Guild [+]#
-    async def Affinity(usedCommand: str, otherMember: str, allMembers: list):
-        response = requests.post(anilistURL, json={'query': Queries.affinity, 'variables': {'userName': otherMember, 'perChunk': 500, 'type': 'ANIME'}}); request = response.json()
+    #[+] Get Used Command Information [+]#
+    async def FirstAni(usedComm: str):
+        response = requests.post(anilistURL, json={'query': Queries.affinity, 'variables': {'userName': usedComm, 'perChunk': 500, 'type': 'ANIME'}}); request = response.json()
         data = request['data']['MediaListCollection']['lists']
         userInfo = request['data']['MediaListCollection']['user']
 
-        if usedCommand not in affinityArray:
-            affinityArray[usedCommand] = {}
-            affinityArray[usedCommand]['ids'] = {}
-            affinityArray[usedCommand]['all'] = []
-        
-        if otherMember != usedCommand:
-            if otherMember not in affinityArray:
-                affinityArray[otherMember] = {}
-                affinityArray[otherMember]['ids'] = {}
-                affinityArray[otherMember]['all'] = []
-                affinityArray[otherMember]['shares'] = []
+        affinityArray[usedComm] = {}
+        affinityArray[usedComm]['ids'] = {}
+        affinityArray[usedComm]['all'] = []
 
         dataClamp = len(data)-1
         totalClamp = max([dataClamp])
@@ -484,38 +476,58 @@ class Functions:
                     if entry['score'] == 0 or entry['status'] == 'PLANNING':
                         pass
                     else:
-                        if otherMember == usedCommand:
-                            affinityArray[usedCommand]['all'].append(entry['mediaId'])
-                            affinityArray[usedCommand]['ids'][entry["mediaId"]] = entry['score']
-                        else:
-                            affinityArray[otherMember]['all'].append(entry['mediaId'])
-                            affinityArray[otherMember]['ids'][entry['mediaId']] = entry['score']
+                        affinityArray[usedComm]['all'].append(entry['mediaId'])
+                        affinityArray[usedComm]['ids'][entry["mediaId"]] = entry['score']
                 dataClamp -= 1
             totalClamp -= 1
 
-        if otherMember == usedCommand:
-            usedCommUser = {'name': userInfo['name'], 'url': userInfo['siteUrl'], 'avatar': userInfo['avatar']['large']}
-            return usedCommUser
-        else:
-            for key in list(affinityArray[otherMember]['ids']):
-                if key in affinityArray[usedCommand]['all']:
-                    affinityArray[otherMember]['ids'][key] = [affinityArray[usedCommand]['ids'][key], affinityArray[otherMember]['ids'][key]]
-                    affinityArray[otherMember]['shares'].append(key)
-                else:
-                    del affinityArray[otherMember]['ids'][key]
+        userData = {'name': userInfo['name'], 'url': userInfo['siteUrl'], 'avatar': userInfo['avatar']['large']}
+        return userData
 
-            values = affinityArray[otherMember]['ids'].values()
-            try: score1, score2 = list(zip(*values)); affinity = pearson(score1, score2)
-            except: affinity = 0.0
+    #[+] View The Affinity For All Within Guild [+]#
+    async def Affinity(usedCommand: str, otherMember: str):
+        response = requests.post(anilistURL, json={'query': Queries.affinity, 'variables': {'userName': otherMember, 'perChunk': 500, 'type': 'ANIME'}}); request = response.json()
+        data = request['data']['MediaListCollection']['lists']
+        userInfo = request['data']['MediaListCollection']['user']
 
-            userDict = {'affinity': affinity, 'name': userInfo['name'], 'url': userInfo['siteUrl'], 'shares': len(affinityArray[otherMember]['shares'])}
-            del affinityArray[otherMember]
+        if otherMember == 'Last User In List':
+            affinityArray.clear(); return
 
-            """if allMembers[-1] == otherMember:
-                del affinityArray[usedCommand]"""
+        if otherMember not in affinityArray:
+            affinityArray[otherMember] = {}
+            affinityArray[otherMember]['ids'] = {}
+            affinityArray[otherMember]['all'] = []
+            affinityArray[otherMember]['shares'] = []
 
-            return userDict
+        dataClamp = len(data)-1
+        totalClamp = max([dataClamp])
+        while totalClamp >= 0:
+            if dataClamp >= 0:
+                lists = data[totalClamp]['entries']
+                for entry in lists:
+                    if entry['score'] == 0 or entry['status'] == 'PLANNING':
+                        pass
+                    else:
+                        affinityArray[otherMember]['all'].append(entry['mediaId'])
+                        affinityArray[otherMember]['ids'][entry['mediaId']] = entry['score']
+                dataClamp -= 1
+            totalClamp -= 1
 
+        for key in list(affinityArray[otherMember]['ids']):
+            if key in affinityArray[usedCommand]['all']:
+                affinityArray[otherMember]['ids'][key] = [affinityArray[usedCommand]['ids'][key], affinityArray[otherMember]['ids'][key]]
+                affinityArray[otherMember]['shares'].append(key)
+            else:
+                del affinityArray[otherMember]['ids'][key]
+
+        values = affinityArray[otherMember]['ids'].values()
+        try: score1, score2 = list(zip(*values)); affinity = pearson(score1, score2)
+        except: affinity = 0.0
+
+        userDict = {'affinity': affinity, 'name': userInfo['name'], 'url': userInfo['siteUrl'], 'shares': len(affinityArray[otherMember]['shares'])}
+        del affinityArray[otherMember]
+        return userDict
+        
 # _________________________________________________________________________________________________________________________________________________________________ #
 
     #[+] View User Information [+]#
@@ -557,6 +569,7 @@ class Functions:
 
 # _________________________________________________________________________________________________________________________________________________________________ #
 
+    #[+] View Staff Information [+]#
     async def Staff(staffName: str):
         pass
 
