@@ -108,42 +108,55 @@ class SlashAni(commands.Cog):
 
 # _________________________________________________________________________________________________________________________________________________________________ #
 
-    #[+] Calculate The Affinity For Guild [+]#
+    #[+] Grab Affinity For Users Within Guild [+]#
     @anilist.subcommand(name="affinity", description="View the affinity for the current guild.")
     async def anilist_affinity(self, interaction: Interaction):
-        await interaction.response.defer()
+        await interaction.response.defer() # Allows discord to wait longer for the command
         who_used_comm = interaction.user.id; db = await sqlFunc.sql.fetch("SELECT anilist_name, discord_id FROM anilist")
         members = []; dbMembs = []; affinityList = []; usedCommArray = {}
 
+        #Loop through members and remove bots
         for member in interaction.guild.members:
-            members.append(member.id)
+            if member.bot == False:
+                members.append(member.id)
 
+        #Check to see if the users within guild are in the database
         for key, value in enumerate(db):
             if db[key]['discord_id'] in members:
                 if db[key]['discord_id'] == who_used_comm:
                     who_used_comm = db[key]['anilist_name']
-                dbMembs.append(db[key]['anilist_name'])
+                else:
+                    dbMembs.append(db[key]['anilist_name'])
 
+        #Add a fake user to the end of the list, so once all users have been looped through it wipes the array for more usage
+        dbMembs.append('Last User In List')
+
+        # If who_used_comm variable wasn't updated, we know the user who used this command isn't in the database
         if who_used_comm == interaction.user.id:
             return await interaction.send("You have not set your anilist with the bot. Please use /anilist aniset", ephemeral=True)
 
+        #[+] Create User Who Used Command First, To Avoid Errors [+]#
+        # --> THIS IS A MUST OTHERWISE IT JUST BREAKS IDK WHY
+        usedCommOwner = await Functions.FirstAni(who_used_comm)
+
+        #Loop through members within the database and calculate their affinity
         for member in dbMembs:
-            affinity = await Functions.Affinity(who_used_comm, member, dbMembs)
-            if affinity['name'] == who_used_comm:
-                usedCommArray['owner'] = affinity
-            else:
-                affinityList.append(f"**{affinity['affinity']}%** with **[{affinity['name']}]({affinity['url']})** - [*{affinity['shares']} media shares*]")
+            affinity = await Functions.Affinity(who_used_comm, member)
+            affinityList.append(f"**{affinity['affinity']}%** with **[{affinity['name']}]({affinity['url']})** - [*{affinity['shares']} media shares*]")
 
+        # Well, this works and doesn't (negatives show up at the top)
         affinityList.sort(key=natural_keys); affinityList.reverse()
-        embed = nextcord.Embed(title=f"{usedCommArray['owner']['name']}' affinity", url=usedCommArray['owner']['url'], 
-                            description='\n'.join(affinityList), colour=int(os.getenv("COL"), 16))
 
-        embed.set_thumbnail(url=usedCommArray['owner']['avatar'])
-        await interaction.send(embed=embed, ephemeral=True)
+        #Create and send embed of all members
+        embed = nextcord.Embed(title=f"{usedCommOwner['name']}' affinity", url=usedCommOwner['url'], 
+        description='\n'.join(affinityList), colour=int(os.getenv("COL"), 16))
 
-# _________________________________________________________________________________________________________________________________________________________________ #
+        embed.set_thumbnail(url=usedCommOwner['avatar'])
+        await interaction.send(embed=embed)
 
     #[+] Information About Staff Members [+]#
     @anilist.subcommand(name="staff", description="View information about a staff member")
     async def anilist_staff(self, interaction: Interaction, staff_name: str = SlashOption("staff_name", description="Name of staff member", required=True)):
         pass
+
+# _________________________________________________________________________________________________________________________________________________________________ #
