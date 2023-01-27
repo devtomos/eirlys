@@ -19,7 +19,6 @@ Although mainly used to utilize the Anilist API. It comes with a few other comma
 # Requirements
 ```
 - Python 3.6+
-- Git (to install beta branch of nextcord)
 - Postgres for Local DB (Add to PATH too)
 - Fill out .env once Postgres is done.
 ```
