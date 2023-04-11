@@ -4,9 +4,14 @@ from statistics import mean
 
 #[+] Connect To Database [+]#
 async def sqlFunc():
-    try:
-        sqlFunc.sql = await asyncpg.connect(user=os.getenv('USER'), host=os.getenv('HOST'), database=os.getenv('DB_NAME'), password=os.getenv('PASS'))
-    except: print("[!] CRITICAL: Could not load Database.")
+    if os.getenv('DB_URL') != None:
+        try:
+            sqlFunc.sql = await asyncpg.connect(os.getenv('DB_URL'))
+        except: print("[!] CRITICAL: Could not load Database from URL")
+    else:
+        try:
+            sqlFunc.sql = await asyncpg.connect(user=os.getenv('USER'), host=os.getenv('HOST'), database=os.getenv('DB_NAME'), password=os.getenv('PASS'))
+        except: print("[!] CRITICAL: Could not load Database as localhost")
 
 #[+] Return Fixed List [+]#
 def atoi(text):
