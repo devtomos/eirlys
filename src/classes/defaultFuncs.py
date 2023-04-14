@@ -1,32 +1,47 @@
-import re, asyncpg, os
+import asyncpg
+import os
+import re
+import logging
+import sys
 from decimal import Decimal
 from statistics import mean
 
-#[+] Connect To Database [+]#
-async def sqlFunc():
-    if os.getenv('DB_URL') != None:
-        try:
-            sqlFunc.sql = await asyncpg.connect(os.getenv('DB_URL'))
-        except: print("[!] CRITICAL: Could not load Database from URL")
-    else:
-        try:
-            sqlFunc.sql = await asyncpg.connect(user=os.getenv('USER'), host=os.getenv('HOST'), database=os.getenv('DB_NAME'), password=os.getenv('PASS'))
-        except: print("[!] CRITICAL: Could not load Database as localhost")
+# [+] Setup Logging for Nextcord [+]#
+logger = logging.getLogger('nextcord')
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter('[%(asctime)s:%(levelname)s:%(name)s]: %(message)s'))
+logger.addHandler(handler)
 
-#[+] Return Fixed List [+]#
+
+# [+] Connect To Database [+]#
+async def sql_func():
+    if os.getenv('DB_URL') is not None:
+        try:
+            sql_func.sql = await asyncpg.connect(os.getenv('DB_URL'))
+            logger.info(f'Connected to Database')
+        except:
+            logger.critical(f'Could not load Database from URL')
+    else:
+        return logger.critical(f'Could not load Database')
+
+
+# [+] Return Fixed List [+]#
 def atoi(text):
     return int(text) if text.isdigit() else text
 
-#[+] Return Fixed List [+]#
+
+# [+] Return Fixed List [+]#
 def natural_keys(text):
     '''
     alist.sort(key=natural_keys) sorts in human order
     http://nedbatchelder.com/blog/200712/human_sorting.html
     (See Toothy's implementation in the comments)
     '''
-    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+    return [atoi(c) for c in re.split(r'(\d+)', text)]
 
-#[+] Calculate The Pearson For Users [+]#
+
+# [+] Calculate The Pearson For Users [+]#
 def pearson(x, y):
     """
     Pearson's correlation implementation without scipy or numpy.
@@ -55,14 +70,15 @@ def pearson(x, y):
 
     return round(float(num / den) * 100, 2)
 
-#[+] Return Time From Seconds [+]#
+
+# [+] Return Time From Seconds [+]#
 def returnTime(seconds, granularity=2):
     intervals = (
-    ('weeks', 604800),
-    ('days', 86400),
-    ('hours', 3600),
-    ('minutes', 60),
-    ('seconds', 1),
+        ('weeks', 604800),
+        ('days', 86400),
+        ('hours', 3600),
+        ('minutes', 60),
+        ('seconds', 1),
     )
 
     result = []
