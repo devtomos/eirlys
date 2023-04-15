@@ -1,12 +1,11 @@
-# Miumi - A Multipurpose Discord Bot
-Although mainly used to utilize the Anilist API. It comes with a few other commands that may come in use.
+# eirlys
+A discord bot which utilizes the anilist GraphQL API.
 
 # Features
 ```
 - Anilist API utilization
 - Slash Commands and Text Commands
 - Utilizes Discord latest components
-- Local Database using Postgres
 ```
 
 # TODO / TO ADD
@@ -19,6 +18,5 @@ Although mainly used to utilize the Anilist API. It comes with a few other comma
 # Requirements
 ```
 - Python 3.6+
-- Postgres for Local DB (Add to PATH too)
-- Fill out .env once Postgres is done.
+- Fill out .env
 ```
