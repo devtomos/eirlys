@@ -16,11 +16,13 @@ from statistics import mean
 from src.api.general.errors import *
 from src.api.general.errors import NoDataBaseError
 
+#%(asctime)s:%(levelname)s:%(name)s
+
 # Setup Logging for all files
 logger = logging.getLogger('eirlys')
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(logging.Formatter('[%(asctime)s:%(levelname)s:%(name)s]: %(message)s'))
+handler.setFormatter(logging.Formatter('[%(levelname)s:%(name)s]: %(message)s'))
 logger.addHandler(handler)
 
 # Not sure how else to really do this. If you have any other way let me know.
