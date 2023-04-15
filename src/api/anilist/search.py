@@ -102,7 +102,7 @@ async def search(media_name: str, media_type: str, db_members: list, is_componen
                 search_data['paused'].append(f"{member}")
 
             if user_stats['status'] == 'PLANNING':
-                search_data['planned'].append(f"{member}")
+                search_data['planning'].append(f"{member}")
 
     search_list = [
         '`All Episodes     :` **{}**\n'.format(search_data['episodes']),
