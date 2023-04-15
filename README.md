@@ -6,6 +6,7 @@ A discord bot which utilizes the anilist GraphQL API.
 - Anilist API utilization
 - Slash Commands and Text Commands
 - Utilizes Discord latest components
+- Auto sharding
 ```
 
 # TODO / TO ADD
