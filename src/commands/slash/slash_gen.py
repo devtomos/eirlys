@@ -33,6 +33,8 @@ class SlashGeneral(commands.Cog):
         convert_in360 = ((360 / (one * dpi * 1 * sens)))
         convert_cm360 = ((360 / (one * dpi * 1 * sens)) * 2.54)
 
+        print(convert_sens)
+
         await interaction.send(f"{game_two}: `{round(convert_sens, 3)}`\n`{round(convert_cm360, 2)}cm/360` | `{round(convert_in360, 2)}in/360`")
 
 

@@ -2,10 +2,8 @@ import nextcord
 import os
 import asyncio
 from dotenv import load_dotenv
-from nextcord import Forbidden
 from nextcord.ext import commands
 
-from src.api.anilist.search import search
 from src.api.general.wide_functions import logger, db_connect
 from src.api.general.errors import NextCordErrorHandler
 from src.commands.slash.slash_anilist import SlashAnilist
