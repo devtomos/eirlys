@@ -36,6 +36,25 @@ compare_search = [
     '`Dropped          :`\n> ****\n\n', '`Paused           :`\n> ****\n\n', '`Planning         :`\n> ****\n\n']
 
 
+sens_games = {
+    'CSS': 0.022,
+    'Overwatch': 0.0066,
+    'Valorant': 0.07,
+    'Apex Legends': 0.022,
+    'Fortnite': 0.005555,
+    'CSGO': 0.022,
+    'COD MW2': 0.0066,
+    'Rainbow Six': 0.00572957795,
+    'Rust': 0.1125,
+    'Destiny 2': 0.022,
+}
+
+"""
+CONVERT GAME SENS = (((FROM GAME * DPI) * SENS) / (TO GAME * DPI))
+CONVERT TO IN/360 = ((360 / (FROM GAME * DPI * 1 * FROM SENS)))
+CONVER TO CM/360 ((360 / (FROM GAME * 800 * 1 * FROM SENS)) * 2.54)
+"""
+
 # Connect to database
 async def db_connect() -> Type[NoDataBaseError] | Any:
     if os.getenv("DB_URL") is not None:

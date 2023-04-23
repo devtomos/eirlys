@@ -137,6 +137,11 @@ class TextAnilist(commands.Cog):
                               f"{datetime.utcfromtimestamp(ani['updated']).strftime('%d/%m/%Y %H:%M:%S')}")
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def anistats(self, ctx):
+        ani = await user_search("toemas")
+        print(ani)
+
 
 def setup(client):
     client.add_cog(TextAnilist(client))

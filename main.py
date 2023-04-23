@@ -9,6 +9,7 @@ from src.api.anilist.search import search
 from src.api.general.wide_functions import logger, db_connect
 from src.api.general.errors import NextCordErrorHandler
 from src.commands.slash.slash_anilist import SlashAnilist
+from src.commands.slash.slash_gen import SlashGeneral
 
 """
 TODO:
@@ -28,6 +29,7 @@ client = commands.AutoShardedBot(shard_count=int(os.getenv('SHARD_COUNT')), comm
 
 client.add_cog(NextCordErrorHandler(client))
 client.add_cog(SlashAnilist(client))
+client.add_cog(SlashGeneral(client))
 
 # Initialize text cogs
 for filename in os.listdir('./src/commands/text'):

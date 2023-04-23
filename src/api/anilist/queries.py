@@ -70,6 +70,10 @@ class Query:
                 meanScore
                 minutesWatched
                 episodesWatched
+                scores {
+                    score
+                    count
+                }
                 genres {
                     count
                     genre
@@ -83,6 +87,10 @@ class Query:
                 standardDeviation
                 chaptersRead
                 volumesRead
+                scores {
+                    score
+                    count
+                }
                 genres {
                     count
                     genre
