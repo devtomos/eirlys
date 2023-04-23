@@ -7,7 +7,7 @@ from src.api.anilist.user import user_search
 from src.api.general.wide_functions import *
 from src.api.general.wide_components import AnilistComponentViewer
 
-games = ['CSS', 'Quake', 'Overwatch', 'Valorant', 'Apex Legends', 'Fortnite', 'CSGO', 'COD MW2 (2022)', 'Rainbow Six', 'Rust', 'Destiny 2', 'cm/360', 'in/360']
+games = ['CSS', 'Quake', 'Overwatch', 'Valorant', 'Apex Legends', 'Fortnite', 'CSGO', 'COD MW2 (2022)', 'Rainbow Six', 'Rust', 'Destiny 2']
 
 class SlashGeneral(commands.Cog):
     def __init__(self, client):
