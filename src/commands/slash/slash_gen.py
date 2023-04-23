@@ -13,8 +13,11 @@ class SlashGeneral(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    @slash_command(name="sensitivity")
+    async def sens(self):
+        pass
 
-    @slash_command(name="convert", description="Convert your sensitivity from one game to another.", guild_ids=[943646304414879805])
+    @sens.subcommand(name="converter", description="Convert your sensitivity from one game to another.")
     async def slash_conv(self, interaction: Interaction, 
     game_one: str = SlashOption("from", description="The game you want to convert from", required=True, autocomplete=True),
     game_two: str = SlashOption("to", description="The game you want to convert to", required=True, autocomplete=True),
