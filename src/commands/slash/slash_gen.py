@@ -13,16 +13,16 @@ class SlashGeneral(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @slash_command(name="sensitivity")
-    async def sens(self):
+    @slash_command()
+    async def sensitivity(self, interaction: Interaction):
         pass
 
-    @sens.subcommand(name="converter", description="Convert your sensitivity from one game to another.")
+    @sensitivity.subcommand(name="converter", description="Convert your sensitivity from one game to another.")
     async def slash_conv(self, interaction: Interaction, 
     game_one: str = SlashOption("from", description="The game you want to convert from", required=True, autocomplete=True),
     game_two: str = SlashOption("to", description="The game you want to convert to", required=True, autocomplete=True),
-    sens: str = SlashOption("sensitivity", description="Your sensiviity for the game", required=True),
-    dpi: str = SlashOption("dpi", description="Your DPI for your mouse", required=True)):
+    sens: float = SlashOption("sensitivity", description="Your sensiviity for the game", required=True),
+    dpi: int = SlashOption("dpi", description="Your DPI for your mouse", required=True)):
 
         one = float(sens_games[game_one])
         two = float(sens_games[game_two])
