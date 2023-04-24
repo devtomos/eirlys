@@ -65,6 +65,15 @@ async def db_connect() -> Type[NoDataBaseError] | Any:
         return NoDataBaseError("Database URL is not working. Please update or add the Database URL to the .env file.")
 
 
+# Convert Empty Strings into N/A
+# https://stackoverflow.com/questions/35985923/replace-none-in-a-python-dictionary
+def convert(any_dict):
+    for k, v in any_dict.items():
+        if v == '':
+            any_dict[k] = "N/A"
+        elif type(v) == type(any_dict):
+            convert(v)
+
 # Return text
 # Forgot where I got this from, but it was a while ago.
 def atoi(text) -> int:

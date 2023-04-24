@@ -13,7 +13,6 @@ from src.commands.slash.slash_gen import SlashGeneral
 TODO:
     1) First set up the APIs required - Affinity is left
     2) Set up logging for the terminal - Add more to api and affinity
-    3) Connect to Database and set it up with the APIs - DONE
     4) Cache User content and such for the API (saves reruns) - LAST THING
 """
 
@@ -25,7 +24,6 @@ client = commands.AutoShardedBot(shard_count=int(os.getenv('SHARD_COUNT')), comm
                                  intents=nextcord.Intents.all(),
                                  case_insensitive=True)
 
-client.add_cog(NextCordErrorHandler(client))
 client.add_cog(SlashAnilist(client))
 client.add_cog(SlashGeneral(client))
 
@@ -46,6 +44,8 @@ for filename in os.listdir('./src/commands/text'):
 # Send message once Eirlys is ready.
 @client.event
 async def on_ready():
+    if client.user.name != "eirlys test":
+        client.add_cog(NextCordErrorHandler(client))
     logger.info(f'{client.user.name} is online')
     await client.change_presence(status=nextcord.Status.online,
                                  activity=nextcord.Activity(name=f"Snowdrop", type=3))
