@@ -67,12 +67,15 @@ async def db_connect() -> Type[NoDataBaseError] | Any:
 
 # Convert Empty Strings into N/A
 # https://stackoverflow.com/questions/35985923/replace-none-in-a-python-dictionary
-def convert(any_dict):
+def convert(any_dict, tree):
     for k, v in any_dict.items():
         if v == '':
-            any_dict[k] = "N/A"
+            if k == 'name':
+                any_dict[k] = "Unknown"
+            else:
+                any_dict[k] = "0"
         elif type(v) == type(any_dict):
-            convert(v)
+            convert(v, tree)
 
 # Return text
 # Forgot where I got this from, but it was a while ago.

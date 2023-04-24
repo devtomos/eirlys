@@ -13,14 +13,16 @@ from src.commands.slash.slash_gen import SlashGeneral
 TODO:
     1) First set up the APIs required - Affinity is left
     2) Set up logging for the terminal - Add more to api and affinity
-    4) Cache User content and such for the API (saves reruns) - LAST THING
+    3) Add Logging to VLR command, API and Component
+    4) Add Match Scores and which Map or Stats you're looking at
+    5) Cache User content and such for the API (saves reruns) - LAST THING
 """
 
 # Loading the .env file into Python.
 load_dotenv()
 
 # Create Client and add Shards
-client = commands.AutoShardedBot(shard_count=int(os.getenv('SHARD_COUNT')), command_prefix=".", help_command=None,
+client = commands.AutoShardedBot(shard_count=int(os.getenv('SHARD_COUNT')), command_prefix=".!", help_command=None,
                                  intents=nextcord.Intents.all(),
                                  case_insensitive=True)
 

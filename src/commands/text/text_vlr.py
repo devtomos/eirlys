@@ -10,13 +10,12 @@ class TextVLR(commands.Cog):
 
 
     @commands.command()
-    async def upcoming(self, ctx, url):
+    async def match(self, ctx, url):
         game = await match(url)
         all_stat_list = [
             '`{:^21}`'.format('Game Info'),
             '`{:<8}:` `{:^5}:{:^5}`'.format('Score', game['team_1_score'], game['team_2_score']),
-            '`{:<8}:` `{:^11}`'.format('Map Pick', game['all_stats']['map_name']),
-            '`{:<8}:` `{:^11}`'.format('Duration', game['all_stats']['map_duration']) + '\n',
+            '`{:<8}:` `{:^11}`'.format('Page', 'All Stats') + '\n',
 
 
             f"**{game['all_stats']['team_1']['team_name']}**",
@@ -37,9 +36,11 @@ class TextVLR(commands.Cog):
             ]
         map_one_list =  [
             '`{:^21}`'.format('Game Info'),
-            '`{:<8}:` `{:^5}:{:^5}`'.format('Score', game['team_1_score'], game['team_2_score']),
+            '`{:<8}:` `{:^5}:{:^5}`'.format('F-Score', game['team_1_score'], game['team_2_score']),
+            '`{:<8}:` `{:^5}:{:^5}`'.format('M-Score', game['map_one']['team_1_score'], game['map_one']['team_2_score']),
             '`{:<8}:` `{:^11}`'.format('Map Pick', game['map_one']['map_name']),
-            '`{:<8}:` `{:^11}`'.format('Duration', game['map_one']['map_duration']) + '\n',
+            '`{:<8}:` `{:^11}`'.format('Duration', game['map_one']['map_duration']),
+            '`{:<8}:` `{:^11}`'.format('Page', 'Match One') + '\n',
 
 
             f"**{game['map_one']['team_1']['team_name']}**",
@@ -60,9 +61,11 @@ class TextVLR(commands.Cog):
             ]                    
         map_two_list = [
             '`{:^21}`'.format('Game Info'),
-            '`{:<8}:` `{:^5}:{:^5}`'.format('Score', game['team_1_score'], game['team_2_score']),
+            '`{:<8}:` `{:^5}:{:^5}`'.format('F-Score', game['team_1_score'], game['team_2_score']),
+            '`{:<8}:` `{:^5}:{:^5}`'.format('M-Score', game['map_two']['team_1_score'], game['map_two']['team_2_score']),
             '`{:<8}:` `{:^11}`'.format('Map Pick', game['map_two']['map_name']),
-            '`{:<8}:` `{:^11}`'.format('Duration', game['map_two']['map_duration']) + '\n',
+            '`{:<8}:` `{:^11}`'.format('Duration', game['map_two']['map_duration']),
+            '`{:<8}:` `{:^11}`'.format('Page', 'Match Two') + '\n',
 
 
             f"**{game['map_two']['team_1']['team_name']}**",
@@ -83,9 +86,11 @@ class TextVLR(commands.Cog):
             ]
         map_three_list = [
             '`{:^21}`'.format('Game Info'),
-            '`{:<8}:` `{:^5}:{:^5}`'.format('Score', game['team_1_score'], game['team_2_score']),
+            '`{:<8}:` `{:^5}:{:^5}`'.format('F-Score', game['team_1_score'], game['team_2_score']),
+            '`{:<8}:` `{:^5}:{:^5}`'.format('M-Score', game['map_three']['team_1_score'], game['map_three']['team_2_score']),
             '`{:<8}:` `{:^11}`'.format('Map Pick', game['map_three']['map_name']),
-            '`{:<8}:` `{:^11}`'.format('Duration', game['map_three']['map_duration']) + '\n',
+            '`{:<8}:` `{:^11}`'.format('Duration', game['map_three']['map_duration']),
+            '`{:<8}:` `{:^11}`'.format('Page', 'Match Three') + '\n',
 
 
             f"**{game['map_three']['team_1']['team_name']}**",
@@ -110,14 +115,6 @@ class TextVLR(commands.Cog):
         embed.set_thumbnail(url=game['tournament_pic'])
 
         await ctx.send(embed=embed, view=VLRPage(embed, all_stat_list, map_one_list, map_two_list, map_three_list))
-
-    @commands.command()
-    async def results(self, ctx):
-        pass
-
-    @commands.command()
-    async def news(self, ctx):
-        pass
 
 def setup(client):
     client.add_cog(TextVLR(client))
