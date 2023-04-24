@@ -22,7 +22,7 @@ TODO:
 load_dotenv()
 
 # Create Client and add Shards
-client = commands.AutoShardedBot(shard_count=int(os.getenv('SHARD_COUNT')), command_prefix=".!", help_command=None,
+client = commands.AutoShardedBot(shard_count=int(os.getenv('SHARD_COUNT')), command_prefix=".", help_command=None,
                                  intents=nextcord.Intents.all(),
                                  case_insensitive=True)
 
