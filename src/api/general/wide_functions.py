@@ -70,10 +70,7 @@ async def db_connect() -> Type[NoDataBaseError] | Any:
 def convert(any_dict, tree):
     for k, v in any_dict.items():
         if v == '':
-            if k == 'name':
-                any_dict[k] = "Unknown"
-            else:
-                any_dict[k] = "0"
+            any_dict[k] = "0"
         elif type(v) == type(any_dict):
             convert(v, tree)
 

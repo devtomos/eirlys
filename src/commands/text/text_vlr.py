@@ -111,7 +111,7 @@ class TextVLR(commands.Cog):
             ]
         
         embed = nextcord.Embed(title=game['tournament_name'], description='\n'.join(all_stat_list), url="https://www.twitch.tv/valorant")
-        embed.set_footer(text=f"Status: {str(game['start']).capitalize()} | {game['start_date']}")
+        embed.set_footer(text=f"Status: {game['start']} | {game['start_date']}")
         embed.set_thumbnail(url=game['tournament_pic'])
 
         await ctx.send(embed=embed, view=VLRPage(embed, all_stat_list, map_one_list, map_two_list, map_three_list))
