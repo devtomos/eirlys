@@ -505,4 +505,3 @@ async def match(url: str) -> Dict:
 
     convert(match_array, tree)
     return match_array
-
