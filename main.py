@@ -57,5 +57,5 @@ async def on_ready():
 
 # Run Eirlys from this file only.
 if __name__ == '__main__':
-    client.run(os.getenv('TOKEN'))
+    client.run(os.getenv('TEST_TOKEN'))
     asyncio.run(db_connect())

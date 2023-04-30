@@ -15,7 +15,6 @@ async def user_search(username: str) -> Dict:
     response = requests.post(Query.url, json={'query': Query.user, 'variables': {'name': username}})
     request = response.json()
     data = request['data']['User']
-    print(data)
 
     logger.info(f"Getting data for {username} from Anilist GraphQL API.")
 
@@ -33,7 +32,7 @@ async def user_search(username: str) -> Dict:
         'updated': data['updatedAt'],
         'animeCount': data['statistics']['anime']['count'],
         'animeMean': data['statistics']['anime']['meanScore'],
-        'animeTime': data['statistics']['anime']['minutesWatched'],
+        'animeTime': data['statistics']['anime']['minutesWatched'] * 60,
         'animeWatch': data['statistics']['anime']['episodesWatched'],
         'mangaCount': data['statistics']['manga']['count'],
         'mangaMean': data['statistics']['manga']['meanScore'],
