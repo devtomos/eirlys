@@ -17,6 +17,7 @@ use serenity::prelude::*;
 use tracing::{error, info};
 
 use crate::commands::generic::*;
+use crate::commands::anilist::*;
 
 pub struct ShardManagerContainer;
 
@@ -38,7 +39,7 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(avatar, banner, sensitivity)]
+#[commands(avatar, banner, sensitivity, anime)]
 struct General;
 
 #[tokio::main]

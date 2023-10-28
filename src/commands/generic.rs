@@ -5,7 +5,6 @@ use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 use crate::general::gen_funcs::get_sens;
-use crate::api::search_media::search;
 
 #[command]
 pub async fn sensitivity(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
