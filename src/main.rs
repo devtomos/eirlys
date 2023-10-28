@@ -1,4 +1,5 @@
 mod commands;
+mod api;
 
 use std::collections::HashSet;
 use std::env;
@@ -36,7 +37,7 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(avatar, banner)]
+#[commands(avatar, banner, sensitivity)]
 struct General;
 
 #[tokio::main]

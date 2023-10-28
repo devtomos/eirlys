@@ -1,21 +1,29 @@
+use rust_decimal::Decimal;
+use rust_decimal::prelude::FromPrimitive;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
+use crate::api::gen_funcs::get_sens;
 
-// Fix this
+#[command]
+pub async fn sensitivity(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+    let from_game = args.single::<String>()?.to_uppercase();
+    let to_game = args.single::<String>()?.to_uppercase();
+    let dpi = args.single::<f64>()?;
+    let sens = args.single::<f64>()?;
 
-/*
-enum Games {
-    RainbowSixSiege = 0.00572957795,
-    Valorant = 0.07,
-    CS2 = 0.022,
-    ApexLegends = 0.022,
-    Fortnite = 0.005555,
-    Overwatch = 0.0066,
-    Rust = 0.1125,
-    Destiny = 0.022,
-}*/
+    let conv_game1 = get_sens(&from_game).unwrap();
+    let conv_game2 = get_sens(&to_game).unwrap();
+
+    let convert_sens = Decimal::from_f64(((conv_game1 * dpi) * sens) / (conv_game2 * dpi)).unwrap();
+    let convert_in360 = Decimal::from_f64(360.0 / (conv_game1 * dpi * 1.0 * sens)).unwrap();
+    let convert_cm360 = Decimal::from_f64(360.0 / (conv_game1 * dpi * 1.0 * sens) * 2.54).unwrap();
+
+    msg.reply(&ctx.http, format!("Sensitivity: `{}`\n`{}cm/360` | `{}in/360`", convert_sens.round_dp(2), convert_cm360.round_dp(2), convert_in360.round_dp(2))).await?;
+
+    Ok(())
+}
 
 #[command]
 pub async fn avatar(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
