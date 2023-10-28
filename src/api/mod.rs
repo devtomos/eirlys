@@ -1,1 +1,2 @@
-pub mod gen_funcs;
+pub mod search_media;
+pub mod queries;

@@ -1,4 +1,5 @@
 mod commands;
+mod general;
 mod api;
 
 use std::collections::HashSet;
