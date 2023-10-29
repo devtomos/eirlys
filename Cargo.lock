@@ -358,6 +358,7 @@ dependencies = [
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
+ "serde_json",
  "serenity",
  "tokio",
  "tracing",

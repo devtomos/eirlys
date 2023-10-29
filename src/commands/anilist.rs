@@ -8,7 +8,8 @@ use crate::api::search_media::search;
 pub async fn anime(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let media_name = args.single::<String>()?.to_string();
     let search = search(media_name, "ANIME".to_string()).await;
-    println!("{}", search);
+
+    msg.reply(&ctx.http, search.join("\n")).await?;
 
     Ok(())
 }
