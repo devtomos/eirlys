@@ -5,8 +5,8 @@ use serenity::prelude::*;
 use crate::api::search_media::search;
 
 #[command]
-pub async fn anime(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let media_name = args.single::<String>()?.to_string();
+pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let media_name = args.message().to_string();
     let search = search(media_name, "ANIME".to_string()).await;
 
     msg.reply(&ctx.http, search.join("\n")).await?;
