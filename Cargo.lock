@@ -355,6 +355,7 @@ name = "eirlys_rs"
 version = "0.1.0"
 dependencies = [
  "dotenv",
+ "num-format",
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
@@ -837,6 +838,16 @@ checksum = "77a8165726e8236064dbb45459242600304b42a5ea24ee2948e18e023bf7ba84"
 dependencies = [
  "overload",
  "winapi",
+]
+
+[[package]]
+name = "num-format"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a652d9771a63711fd3c3deb670acfbe5c30a4072e664d7a3bf5a9e1056ac72c3"
+dependencies = [
+ "arrayvec",
+ "itoa",
 ]
 
 [[package]]

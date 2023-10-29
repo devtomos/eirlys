@@ -13,10 +13,10 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     
     msg.channel_id.send_message(&ctx.http, |m| {
         m.embed(|e| { 
-            e.title(search.1.get(0).unwrap())
-            .url(search.1.get(1).unwrap())
-            .thumbnail(search.1.get(2).unwrap())
-            .image(search.1.get(3).unwrap())
+            e.title(&search.1[0])
+            .url(&search.1[1])
+            .thumbnail(&search.1[2])
+            .image(&search.1[3])
             .description(format!("{}", search.0.join("\n")))
         })
     }).await?;

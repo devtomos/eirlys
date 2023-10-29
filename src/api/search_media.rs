@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::api::queries::get_query;
 use tracing::info;
+use num_format::{Locale, ToFormattedString};
 
 pub async fn search(media_name: String, media_type: String) -> (Vec<String>, Vec<String>) {
     info!("Searching for {} in {}", media_name, media_type);
@@ -33,26 +34,30 @@ pub async fn search(media_name: String, media_type: String) -> (Vec<String>, Vec
     let genres = &data["genres"];
     let mean_score = &data["meanScore"];
     let average_score = &data["averageScore"];
-    let popularity = &data["popularity"];
-    let favourites = &data["favourites"];
+    let popularity = &data["popularity"].as_i64().unwrap().to_formatted_string(&Locale::en);
+    let favourites = &data["favourites"].as_i64().unwrap().to_formatted_string(&Locale::en);
     let url = &data["siteUrl"];
     let avatar = &data["coverImage"]["extraLarge"];
     let banner = &data["bannerImage"];
 
     info!("Returning Information For {}", title);
     (vec![
-        format!("All Episodes: {}", episodes),
-        format!("Status: {}", status), 
-        format!("Avg Score: {}", average_score), 
-        format!("Mean Score: {}", mean_score), 
-        format!("Popularity: {}", popularity), 
-        format!("Favourites: {}", favourites),
-        format!("Genres: {}", genres)
-        ].iter().map(|x| x.to_string()).collect(), 
+        format!("`All Episodes :` **{}**", episodes),
+        format!("`Status       :` **{}**", status), 
+        format!("`Avg Score    :` **{}%**", average_score), 
+        format!("`Mean Score   :` **{}%**", mean_score),
+        format!("`Popularity   :` **{}**", popularity), 
+        format!("`Favourites   :` **{}**", favourites),
+        format!("`Genres       :` **{}**", genres),
+        ].iter().map(|x| x.trim_matches('"').to_string()).collect(),
+
         vec![
-            title,
-            url, 
-            avatar, 
-            banner].iter().map(|x| x.to_string()).collect())
+            format!("{}", title),
+            format!("{}", url),
+            format!("{}", avatar),
+            format!("{}", banner),
+        ].iter().map(|x| x.trim_matches('"').to_string()).collect())
+
+        // Try to find an alternative way (only way I could think of right now.)       
 
 }
