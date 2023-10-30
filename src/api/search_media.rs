@@ -9,7 +9,6 @@ pub async fn search(media_name: String, media_type: String) -> (Vec<String>, Vec
     let mut map = HashMap::new();
     let query = get_query("search");
 
-
     // Insert GrahpQL Query and Variables
     // Query: Sarch
     // Variables: "Search": Anime_Name, "Type": Anime_Type
@@ -52,12 +51,10 @@ pub async fn search(media_name: String, media_type: String) -> (Vec<String>, Vec
         ].iter().map(|x| x.trim_matches('"').to_string()).collect(),
 
         vec![
-            format!("{}", title),
-            format!("{}", url),
-            format!("{}", avatar),
-            format!("{}", banner),
+            title.to_string(),
+            url.to_string(),
+            avatar.to_string(),
+            banner.to_string(),
         ].iter().map(|x| x.trim_matches('"').to_string()).collect())
-
-        // Try to find an alternative way (only way I could think of right now.)       
-
+        // Try to find an alternative way (only way I could think of right now)
 }
