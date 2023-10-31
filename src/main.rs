@@ -19,6 +19,8 @@ use tracing::{error, info};
 use crate::commands::generic::*;
 use crate::commands::anilist::*;
 
+// Testing
+
 pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
