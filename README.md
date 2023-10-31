@@ -8,7 +8,8 @@ Discord bot once written in Python, but now rust.
 - [ ] SQL DB
 - [ ] Cache things (Scores, Animes, Mangas)
 - [ ] Refactor some of the code (some things are ugly -> get_queries)
-- [ ] Move to docker
+- [x] Move to docker
+- [ ] Optimize the Dockerfile
 ```
 
 # How to use
