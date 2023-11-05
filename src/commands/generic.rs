@@ -5,6 +5,7 @@ use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 use crate::general::gen_funcs::get_sens;
+use rand::Rng;
 
 #[command]
 pub async fn sensitivity(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -22,6 +23,18 @@ pub async fn sensitivity(ctx: &Context, msg: &Message, mut args: Args) -> Comman
 
     msg.reply(&ctx.http, format!("Sensitivity: `{}`\n`{}cm/360` | `{}in/360`", convert_sens.round_dp(2), convert_cm360.round_dp(2), convert_in360.round_dp(2))).await?;
 
+    Ok(())
+}
+
+
+#[command]
+#[aliases("50", "8ball", "8")]
+pub async fn fifty(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let answers: [&str; 2] = ["Yes", "No"];
+    let user_input = args.message().to_string();
+    let random_num = rand::thread_rng().gen_range(0..2);
+
+    msg.reply(&ctx.http, format!("{}: {}", user_input, answers[random_num])).await?;
     Ok(())
 }
 

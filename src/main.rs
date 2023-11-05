@@ -19,8 +19,6 @@ use tracing::{error, info};
 use crate::commands::generic::*;
 use crate::commands::anilist::*;
 
-// Testing
-
 pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
@@ -41,7 +39,7 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(avatar, banner, sensitivity, anime)]
+#[commands(avatar, banner, sensitivity, anime, fifty)]
 struct General;
 
 #[tokio::main]

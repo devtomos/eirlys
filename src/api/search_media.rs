@@ -26,11 +26,14 @@ pub async fn search(media_name: String, media_type: String) -> (Vec<String>, Vec
     let data = &res["data"]["Media"];
     info!("Received response from AniList");
 
-    // Anime Information
+    // Anime Information | Try to find a better alternative to joining genres (IF POSSIBLE)
     let title = &data["title"]["romaji"];
     let status = &data["status"];
     let episodes = &data["episodes"];
-    let genres = &data["genres"];
+    let genres: Vec<String> = data["genres"].as_array().expect("Failed to convert genres to array").iter()
+            .map(|v| v.as_str().expect("Failed to convert genre to string").to_owned())
+            .collect();
+    let genres_str = genres.join(", ");
     let mean_score = &data["meanScore"];
     let average_score = &data["averageScore"];
     let popularity = &data["popularity"].as_i64().unwrap().to_formatted_string(&Locale::en);
@@ -47,7 +50,7 @@ pub async fn search(media_name: String, media_type: String) -> (Vec<String>, Vec
         format!("`Mean Score   :` **{}%**", mean_score),
         format!("`Popularity   :` **{}**", popularity), 
         format!("`Favourites   :` **{}**", favourites),
-        format!("`Genres       :` **{}**", genres),
+        format!("`Genres       :` **{}**", genres_str),
         ].iter().map(|x| x.trim_matches('"').to_string()).collect(),
 
         vec![

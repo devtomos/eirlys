@@ -355,9 +355,10 @@ checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 name = "eirlys_rs"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "dotenv",
+ "futures-util",
  "num-format",
+ "rand",
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
