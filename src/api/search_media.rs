@@ -10,7 +10,7 @@ pub async fn search(media_name: String, media_type: String) -> (Vec<String>, Vec
     let query = get_query("search");
 
     // Insert GrahpQL Query and Variables
-    // Query: Sarch
+    // Query: Search
     // Variables: "Search": Anime_Name, "Type": Anime_Type
     map.insert("query", query);
     map.insert("variables", format!("{{\"search\": \"{}\", \"type\": \"{}\"}}", media_name, media_type.to_uppercase()));

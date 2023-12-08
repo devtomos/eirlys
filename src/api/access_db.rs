@@ -1,27 +1,47 @@
-use tokio_postgres::{Error, NoTls};
+use sqlx::Connection;
+use sqlx::Row;
+
 use tracing::info;
 use std::env;
 
 
-pub async fn search_anilist(user: i64) -> Result<String, Error> {
-    let db_url: &str = &env::var("DB_URL").expect("Failed to get DB_URL from environment file");
-    let (client, connection) =
-        tokio_postgres::connect(db_url, NoTls).await?;
+pub async fn anilist_user_search(user: i64) -> Result<String, sqlx::Error> {
+    // Spawn a new task to handle the database connection
+    let handle_user = tokio::spawn(
+        async move {
+            // Grab the database URL from the environment file
+            let db_url: &str = &env::var("DB_URL").expect("Failed to get DB_URL from environment file");
+            info!("Connecting to database");
 
-    info!("Connected to database -> Searching for user {}", user);
+            // Connect to the database
+            let mut conn = sqlx::postgres::PgConnection::connect(db_url).await.unwrap();
+            info!("Connected to database",);
+            info!("Searching for user with ID: {}", user);
+            
+            // Query the database for the user
+            let row = sqlx::query("SELECT anilist_name FROM anilist WHERE discord_id = $1")
+                .bind(user)
+                .fetch_one(&mut conn).await.unwrap();
+            
+            // Grab the user from the database
+            let user = match row.try_get("anilist_name") {
+                Ok(user) => user,
+                Err(_) => {
+                    info!("User {} was not found in the database", user);
+                    return sqlx::Error::RowNotFound.to_string(); // Return if user is not found
+                }
+            };
 
-    tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("connection error: {}", e);
+            info!("Found User: {:?}", user);
+            info!("Returning query for {}", user);
+
+            // Return User
+            return user
         }
-    });
+    );
+    // Grab the output of the handle_user task
+    let handle_output = handle_user.await.unwrap();
 
-    let row = client
-        .query_one("SELECT anilist_name FROM anilist WHERE discord_id = $1::BIGINT", &[&user])
-        .await?;
-    
-    info!("Found User: {:?}", row.get::<_, String>(0));
-
-    info!("Returning query for {}", user);
-    Ok(row.get::<_, String>(0))
-}
+    // Return Result<String> of user grabbed from database
+    Ok(handle_output)
+}   
