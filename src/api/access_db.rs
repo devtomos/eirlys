@@ -19,21 +19,21 @@ pub async fn anilist_user_search(user: i64) -> Result<String, sqlx::Error> {
             info!("Searching for user with ID: {}", user);
             
             // Query the database for the user
-            let row = sqlx::query("SELECT anilist_name FROM anilist WHERE discord_id = $1")
+            let row = match sqlx::query("SELECT anilist_name FROM anilist WHERE discord_id = $1")
                 .bind(user)
-                .fetch_one(&mut conn).await.unwrap();
+                .fetch_one(&mut conn).await {
+                    Ok(row) => row,
+                    Err(_) => {
+                        info!("User {} was not found in the database\n", user);
+                        return String::from("None"); // Return if user is not found
+                    }
+            };
             
             // Grab the user from the database
-            let user = match row.try_get("anilist_name") {
-                Ok(user) => user,
-                Err(_) => {
-                    info!("User {} was not found in the database", user);
-                    return sqlx::Error::RowNotFound.to_string(); // Return if user is not found
-                }
-            };
+            let user = row.get("anilist_name");
 
             info!("Found User: {:?}", user);
-            info!("Returning query for {}", user);
+            info!("Returning query for {}\n", user);
 
             // Return User
             return user

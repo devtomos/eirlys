@@ -1,5 +1,5 @@
 pub fn get_query(query_name: &str) -> String {
-    let search = r#"
+    let search: &str = "
     query ($id: Int, $search: String, $type: MediaType) {
     Media (id: $id, search: $search, type: $type) {
             id
@@ -43,9 +43,22 @@ pub fn get_query(query_name: &str) -> String {
             }
         }
     }
-    "#;
+    ";
+
+    let user_stats: &str = "
+    query ($userName: String, $mediaId: Int) {
+        MediaList(userName: $userName, mediaId: $mediaId) {
+            progressVolumes
+            status
+            score(format: POINT_10)
+            progress
+            repeat
+            }
+        }";
+    
     match query_name {
         "search" => search.to_string(),
+        "user_stats" => user_stats.to_string(),
         _ => String::from(""),
     }
 }
