@@ -15,8 +15,7 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     info!("Looping all members in guild");
     for (key, _value) in guild.members.iter() {
-        // This is too slow for now, PSA: Add caching to members to speed this up
-        // TODO: Remake the Database adding Normalization
+        // FIXME: This is too slow for now
         // TODO: Include Guild ID in Database, check to see where command was called and only grab users within that guild.
         // TODO: Either do all of that ^ or connect to the database ONCE and then grab users to speed up the process.
         let db_check = anilist_user_search(key.0.try_into().unwrap()).await?;
