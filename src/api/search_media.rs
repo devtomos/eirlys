@@ -10,7 +10,7 @@ pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, St
     // Variables: "userName": user_name, "mediaId": media_id
     let client = reqwest::Client::new();
     let query = get_query("user_stats");
-    let mut user_data = HashMap::new();
+    let mut user_data: HashMap<String, String> = HashMap::new();
     let json = json!({"query": query, "variables": {"userName": user_name, "mediaId": media_id}});
     info!("Query has been inserted into JSON");
     
@@ -24,17 +24,15 @@ pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, St
     let data = &res["data"]["MediaList"];
     info!("Received response from AniList | USER SEARCH");
 
-    info!("Inserting data into HashMap\n");
+    info!("Checking to see if data is null\n");
     let _hash_data = match data {
         serde_json::Value::Null => {
-            user_data.insert("progress".to_string(), "0".to_string());
-            user_data.insert("status".to_string(), "0".to_string());
-            user_data.insert("score".to_string(), "0".to_string());
-            user_data.insert("progressVolumes".to_string(), "0".to_string());
-            user_data.insert("repeat".to_string(), "0".to_string());
+            info!("Data is null, returning null hashmap");
+            user_data.insert("status".to_string(), "null".to_string());
             return user_data
         },
         _ => {
+            info!("Data is not null, inserting data into hashmap");
             user_data.insert("progress".to_string(), data["progress"].to_string());
             user_data.insert("status".to_string(), data["status"].to_string());
             user_data.insert("score".to_string(), data["score"].to_string());
@@ -71,11 +69,12 @@ pub async fn search(media_name: String, media_type: String, member_db: Vec<Strin
     // Anime Information | Try to find a better alternative to joining genres (IF POSSIBLE)
     let anime_id = &data["id"];
     let title = &data["title"]["romaji"];
-    let status = &data["status"];
+    let status = &data["status"].to_string().replace("\"", "");
     let episodes = &data["episodes"];
     let genres: Vec<String> = data["genres"].as_array().expect("Failed to convert genres to array").iter()
-            .map(|v| v.as_str().expect("Failed to convert genre to string").to_owned())
-            .collect();
+                                            .map(|v| v.as_str().expect("Failed to convert genre to string").to_owned())
+                                            .collect(); 
+
     let genres_str = genres.join(", ");
     let mean_score = &data["meanScore"];
     let average_score = &data["averageScore"];
@@ -85,12 +84,36 @@ pub async fn search(media_name: String, media_type: String, member_db: Vec<Strin
     let avatar = &data["coverImage"]["extraLarge"];
     let banner = &data["bannerImage"];
 
+    let mut repeating: Vec<String> = Vec::new();
+    let mut planning: Vec<String> = Vec::new();
+    let mut completed: Vec<String> = Vec::new();
+    let mut paused: Vec<String> = Vec::new();
+    let mut dropped: Vec<String> = Vec::new();
+    let mut current: Vec<String> = Vec::new();
+
     for member in member_db {
-        let user_data = user_scores(member, anime_id.as_i64().unwrap()).await;
-        info!("User Data: {:?}\n", user_data);
+        let user_data = user_scores(member.clone(), anime_id.as_i64().unwrap()).await;
+        
+        match user_data["status"].as_str() {
+            "\"REPEATING\"" => repeating.push(format!("{} - {} | {}/10", member, user_data["progress"], user_data["score"])),
+            "\"CURRENT\"" => current.push(format!("{} - {} | {}/10", member, user_data["progress"], user_data["score"])),
+            "\"COMPLETED\"" => {
+                if user_data["repeat"] != "0" {
+                    repeating.push(format!("{} - {} repeats | {}/10", member, user_data["repeat"], user_data["score"]));
+                } else {
+                    completed.push(format!("{} - {}/10", member, user_data["score"]));
+                }
+            },
+
+            "\"PLANNING\"" => planning.push(member),
+            "\"PAUSED\"" => paused.push(member),
+            "\"DROPPED\"" => dropped.push(member),
+            _ => (),
+        }
     }
 
-    // TODO: Add user data to embed
+    // TODO: Loop through vec and removing any redudant data which doesn't need to be showed (E.G if there are no users in a certain category, don't show it)
+    // TODO: Add current episode and when the next episode is due if it's currently airing
 
     info!("Returning Information For {}", title);
     (vec![
@@ -100,7 +123,13 @@ pub async fn search(media_name: String, media_type: String, member_db: Vec<Strin
         format!("`Mean Score   :` **{}%**", mean_score),
         format!("`Popularity   :` **{}**", popularity), 
         format!("`Favourites   :` **{}**", favourites),
-        format!("`Genres       :` **{}**", genres_str),
+        format!("`Genres       :` **{}**\n\n", genres_str),
+        format!("`Repeating    :`\n> **{}**\n\n", repeating.join("\n> ")),
+        format!("`Current      :`\n> **{}**\n\n", current.join("\n> ")),
+        format!("`Completed    :`\n> **{}**\n\n", completed.join("\n> ")),
+        format!("`Planning     :`\n> **{}**\n\n", planning.join("\n> ")),
+        format!("`Paused       :`\n> **{}**\n\n", paused.join("\n> ")),
+        format!("`Dropped      :`\n> **{}**\n\n", dropped.join("\n> ")),
         ].iter().map(|x| x.trim_matches('"').to_string().replace("null", "0")).collect(),
 
         vec![
