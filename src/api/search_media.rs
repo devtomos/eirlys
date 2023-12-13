@@ -15,9 +15,9 @@ pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, St
     info!("Query has been inserted into JSON");
     
     let res = client.post("https://graphql.anilist.co")
-                                        .json(&json)
-                                        .send()
-                                        .await;
+                    .json(&json)
+                    .send()
+                    .await;
     
     info!("Sent request to AniList | USER SEARCH");
     let res = res.unwrap().json::<serde_json::Value>().await.unwrap();
@@ -95,48 +95,53 @@ pub async fn search(media_name: String, media_type: String, member_db: Vec<Strin
         let user_data = user_scores(member.clone(), anime_id.as_i64().unwrap()).await;
         
         match user_data["status"].as_str() {
-            "\"REPEATING\"" => repeating.push(format!("{} - {} | {}/10", member, user_data["progress"], user_data["score"])),
-            "\"CURRENT\"" => current.push(format!("{} - {} | {}/10", member, user_data["progress"], user_data["score"])),
+            "\"REPEATING\"" => repeating.push(format!("**{}** - `{} | {}/10`", member, user_data["progress"], user_data["score"])),
+            "\"CURRENT\"" => current.push(format!("**{}** - `{} | {}/10`", member, user_data["progress"], user_data["score"])),
             "\"COMPLETED\"" => {
                 if user_data["repeat"] != "0" {
-                    repeating.push(format!("{} - {} repeats | {}/10", member, user_data["repeat"], user_data["score"]));
+                    repeating.push(format!("**{}** - `{} repeats | {}/10`", member, user_data["repeat"], user_data["score"]));
                 } else {
-                    completed.push(format!("{} - {}/10", member, user_data["score"]));
+                    completed.push(format!("**{}** - `{}/10`", member, user_data["score"]));
                 }
             },
 
-            "\"PLANNING\"" => planning.push(member),
-            "\"PAUSED\"" => paused.push(member),
-            "\"DROPPED\"" => dropped.push(member),
+            "\"PLANNING\"" => planning.push(format!("**{}**", member)),
+            "\"PAUSED\"" => paused.push(format!("**{}**", member)),
+            "\"DROPPED\"" => dropped.push(format!("**{}**", member)),
             _ => (),
         }
     }
 
-    // TODO: Loop through vec and removing any redudant data which doesn't need to be showed (E.G if there are no users in a certain category, don't show it)
+    // TODO: Loop through vec and removing any redudant data -> ONLY NEED TO DO THIS FOR  ALL EPS, STATUS, AVG SCORE ETC
     // TODO: Add current episode and when the next episode is due if it's currently airing
 
     info!("Returning Information For {}", title);
-    (vec![
+    let mut anime_results: Vec<String> = vec![
         format!("`All Episodes :` **{}**", episodes),
         format!("`Status       :` **{}**", status), 
         format!("`Avg Score    :` **{}%**", average_score), 
         format!("`Mean Score   :` **{}%**", mean_score),
         format!("`Popularity   :` **{}**", popularity), 
         format!("`Favourites   :` **{}**", favourites),
-        format!("`Genres       :` **{}**\n\n", genres_str),
-        format!("`Repeating    :`\n> **{}**\n\n", repeating.join("\n> ")),
-        format!("`Current      :`\n> **{}**\n\n", current.join("\n> ")),
-        format!("`Completed    :`\n> **{}**\n\n", completed.join("\n> ")),
-        format!("`Planning     :`\n> **{}**\n\n", planning.join("\n> ")),
-        format!("`Paused       :`\n> **{}**\n\n", paused.join("\n> ")),
-        format!("`Dropped      :`\n> **{}**\n\n", dropped.join("\n> ")),
-        ].iter().map(|x| x.trim_matches('"').to_string().replace("null", "0")).collect(),
+        format!("`Genres       :` **{}**\n", genres_str),
+        ].iter().map(|x| x.trim_matches('"').to_string().replace("null", "N/A")).collect();
 
-        vec![
-            title.to_string(),
-            url.to_string(),
-            avatar.to_string(),
-            banner.to_string(),
-        ].iter().map(|x| x.trim_matches('"').to_string()).collect())
-        // Try to find an alternative way (only way I could think of right now)
+    let mut vecs = [&mut repeating, &mut current, &mut completed, &mut planning, &mut paused, &mut dropped];
+    let labels = ["Repeating", "Current", "Completed", "Planning", "Paused", "Dropped"];
+        
+    for (vec, label) in vecs.iter_mut().zip(labels.iter()) {
+        if !vec.is_empty() {
+            anime_results.push(format!("`{}    :`\n> {}\n", label, vec.join("\n> ")));
+        }
+    }
+
+    let anime_info: Vec<String> = vec![
+        title.to_string(),
+        url.to_string(),
+        avatar.to_string(),
+        banner.to_string(),
+        ].iter().map(|x| x.trim_matches('"').to_string()).collect();
+
+    return (anime_results, anime_info)
+
 }
