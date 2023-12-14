@@ -43,7 +43,7 @@ impl EventHandler for Handler {
 struct General;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().expect("Failed to load .env file"); // Load local environment file
 
     // Initialize the logger
@@ -90,4 +90,6 @@ async fn main() {
     if let Err(err) = client.start().await {
         error!("Client error: {:?}", err);
     }
+
+    Ok(())
 }

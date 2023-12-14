@@ -24,15 +24,15 @@ pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, St
     let data = &res["data"]["MediaList"];
     info!("Received response from AniList | USER SEARCH");
 
-    info!("Checking to see if data is null\n");
+    info!("Checking to see if data is null");
     let _hash_data = match data {
         serde_json::Value::Null => {
-            info!("Data is null, returning null hashmap");
+            info!("Data is null, returning null hashmap\n");
             user_data.insert("status".to_string(), "null".to_string());
             return user_data
         },
         _ => {
-            info!("Data is not null, inserting data into hashmap");
+            info!("Data is not null, inserting data into hashmap\n");
             user_data.insert("progress".to_string(), data["progress"].to_string());
             user_data.insert("status".to_string(), data["status"].to_string());
             user_data.insert("score".to_string(), data["score"].to_string());
@@ -84,36 +84,43 @@ pub async fn search(media_name: String, media_type: String, member_db: Vec<Strin
     let avatar = &data["coverImage"]["extraLarge"];
     let banner = &data["bannerImage"];
 
-    let mut repeating: Vec<String> = Vec::new();
-    let mut planning: Vec<String> = Vec::new();
-    let mut completed: Vec<String> = Vec::new();
-    let mut paused: Vec<String> = Vec::new();
-    let mut dropped: Vec<String> = Vec::new();
-    let mut current: Vec<String> = Vec::new();
+    let mut lists: HashMap<&str, Vec<String>> = HashMap::new();
+    lists.insert("Repeating", Vec::new());
+    lists.insert("Current", Vec::new());
+    lists.insert("Completed", Vec::new());
+    lists.insert("Planning", Vec::new());
+    lists.insert("Paused", Vec::new());
+    lists.insert("Dropped", Vec::new());
 
     for member in member_db {
         let user_data = user_scores(member.clone(), anime_id.as_i64().unwrap()).await;
+        info!("User Data: {:?}", user_data);
         
         match user_data["status"].as_str() {
-            "\"REPEATING\"" => repeating.push(format!("**{}** - `{} | {}/10`", member, user_data["progress"], user_data["score"])),
-            "\"CURRENT\"" => current.push(format!("**{}** - `{} | {}/10`", member, user_data["progress"], user_data["score"])),
-            "\"COMPLETED\"" => {
-                if user_data["repeat"] != "0" {
-                    repeating.push(format!("**{}** - `{} repeats | {}/10`", member, user_data["repeat"], user_data["score"]));
-                } else {
-                    completed.push(format!("**{}** - `{}/10`", member, user_data["score"]));
+            "\"REPEATING\"" | "\"CURRENT\"" | "\"COMPLETED\"" | "\"PLANNING\"" | "\"PAUSED\"" | "\"DROPPED\"" => {
+                let status = match user_data["status"].as_str() {
+                    "\"REPEATING\"" => "Repeating",
+                    "\"CURRENT\"" => "Current",
+                    "\"COMPLETED\"" => "Completed",
+                    "\"PLANNING\"" => "Planning",
+                    "\"PAUSED\"" => "Paused",
+                    "\"DROPPED\"" => "Dropped",
+                    _ => continue,
+                };
+    
+                if let Some(list) = lists.get_mut(status) {
+                    if status == "Completed" && user_data["repeat"] != "0" {
+                        list.push(format!("**{}** - `{} repeat(s) | {}/10`", member, user_data["repeat"], user_data["score"]));
+                    } else if status == "Repeating" || status == "Current"{
+                        list.push(format!("**{}** - `{} | {}/10`", member, user_data["progress"], user_data["score"]));
+                    } else {
+                        list.push(format!("**{}** - `{}/10`", member, user_data["score"]));
+                    }
                 }
             },
-
-            "\"PLANNING\"" => planning.push(format!("**{}**", member)),
-            "\"PAUSED\"" => paused.push(format!("**{}**", member)),
-            "\"DROPPED\"" => dropped.push(format!("**{}**", member)),
-            _ => (),
+            _ => continue,
         }
     }
-
-    // TODO: Loop through vec and removing any redudant data -> ONLY NEED TO DO THIS FOR  ALL EPS, STATUS, AVG SCORE ETC
-    // TODO: Add current episode and when the next episode is due if it's currently airing
 
     info!("Returning Information For {}", title);
     let mut anime_results: Vec<String> = vec![
@@ -124,14 +131,17 @@ pub async fn search(media_name: String, media_type: String, member_db: Vec<Strin
         format!("`Popularity   :` **{}**", popularity), 
         format!("`Favourites   :` **{}**", favourites),
         format!("`Genres       :` **{}**\n", genres_str),
-        ].iter().map(|x| x.trim_matches('"').to_string().replace("null", "N/A")).collect();
+    ].iter().map(|x| x.trim_matches('"').to_string()).filter(|x| !x.contains("null")).collect();
 
-    let mut vecs = [&mut repeating, &mut current, &mut completed, &mut planning, &mut paused, &mut dropped];
+
     let labels = ["Repeating", "Current", "Completed", "Planning", "Paused", "Dropped"];
-        
-    for (vec, label) in vecs.iter_mut().zip(labels.iter()) {
-        if !vec.is_empty() {
-            anime_results.push(format!("`{}    :`\n> {}\n", label, vec.join("\n> ")));
+
+    for label in &labels {
+        if let Some(vec) = lists.get_mut(*label) {
+            info!("{}: {:?}", label, vec);
+            if !vec.is_empty() {
+                anime_results.push(format!("`{}    :`\n> {}\n", label, vec.join("\n> ")));
+            }
         }
     }
 
@@ -140,7 +150,7 @@ pub async fn search(media_name: String, media_type: String, member_db: Vec<Strin
         url.to_string(),
         avatar.to_string(),
         banner.to_string(),
-        ].iter().map(|x| x.trim_matches('"').to_string()).collect();
+    ].iter().map(|x| x.trim_matches('"').to_string()).collect();
 
     return (anime_results, anime_info)
 

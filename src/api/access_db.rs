@@ -1,47 +1,37 @@
-use sqlx::Connection;
 use sqlx::Row;
-
+use sqlx::postgres::PgPool;
+use std::sync::Arc;
 use tracing::info;
-use std::env;
 
-
-pub async fn anilist_user_search(user: i64) -> Result<String, sqlx::Error> {
+pub async fn anilist_guild_search(guild_id: i64, pool: Arc<PgPool>) -> Result<Vec<String>, sqlx::Error> {
     // Spawn a new task to handle the database connection
     let handle_user = tokio::spawn(
         async move {
-            // Grab the database URL from the environment file
-            let db_url: &str = &env::var("DB_URL").expect("Failed to get DB_URL from environment file");
-            info!("Connecting to database");
-
             // Connect to the database
-            let mut conn = sqlx::postgres::PgConnection::connect(db_url).await.unwrap();
-            info!("Connected to database",);
-            info!("Searching for user with ID: {}", user);
+            info!("Searching for guild with ID: {}", guild_id);
             
             // Query the database for the user
-            let row = match sqlx::query("SELECT anilist_name FROM anilist WHERE discord_id = $1")
-                .bind(user)
-                .fetch_one(&mut conn).await {
-                    Ok(row) => row,
+            let rows = match sqlx::query("SELECT anilist_name FROM tblanilist INNER JOIN tblinfo ON tblanilist.anilist_id = tblinfo.anilist_id INNER JOIN tblguild ON tblinfo.discord_id = tblguild.discord_id WHERE tblguild.guild_id = $1")
+                .bind(guild_id)
+                .fetch_all(&*pool).await {
+                    Ok(rows) => rows,
                     Err(_) => {
-                        info!("User {} was not found in the database\n", user);
-                        return String::from("None"); // Return if user is not found
-                    }
+                        info!("Guild was not found in Database\n");
+                        return Vec::new();
+                }
             };
             
-            // Grab the user from the database
-            let user = row.get("anilist_name");
+            info!("Guild Found in Database");
+            // Store all users within a vector
+            let all_members: Vec<String> = rows.iter().map(|row| row.get("anilist_name")).collect();
+            info!("Returning query \n");
 
-            info!("Found User: {:?}", user);
-            info!("Returning query for {}\n", user);
-
-            // Return User
-            return user
+            return all_members;
         }
     );
     // Grab the output of the handle_user task
     let handle_output = handle_user.await.unwrap();
 
-    // Return Result<String> of user grabbed from database
+    // Return Result<i64> of user grabbed from database
     Ok(handle_output)
 }   
