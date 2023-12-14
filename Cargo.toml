@@ -15,16 +15,13 @@ strip = true        # Strip symbols from binary*
 [dependencies]
 dotenv = "0.15"
 rust_decimal = "1.32.0"
-rust_decimal_macros = "1.32"
 reqwest = { version = "0.11", features = ["json"] }
 tracing = "0.1.23"
 tracing-subscriber = "0.3.17"
 serde_json = "1.0"
 num-format = "0.4.4"
 rand = "0.8.5"
-futures-util = "0.3.29"
 sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres" ] }
-lazy_static = "1.4.0"
 
 [dependencies.tokio]
 version = "1.0"
