@@ -55,7 +55,7 @@ pub fn get_query(query_name: &str) -> String {
             repeat
             }
         }";
-    
+
     match query_name {
         "search" => search.to_string(),
         "user_stats" => user_stats.to_string(),

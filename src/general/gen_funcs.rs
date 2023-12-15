@@ -7,6 +7,6 @@ pub fn get_sens(key: &str) -> Option<f64> {
         "OVERWATCH" => Some(0.0066),
         "RUST" => Some(0.1125),
         "DESTINY" => Some(0.022),
-        _ => None
+        _ => None,
     }
 }

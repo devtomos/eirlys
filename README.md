@@ -1,23 +1,53 @@
-# Eirlys
-Discord bot once written in Python, but now rust.
 
-# To add / implement
-```
-- [ ] Create all anilist functions (Search, User, Affinity, Database)
-- [ ] Add Discord Components and incorporate the anilist commands within them
-- [X] SQL DB
-- [ ] Cache things (Scores, Animes, Mangas)
-- [ ] Refactor some of the code (some things are ugly -> get_queries)
-- [ ] After finishing the commands, revamp the loggers, so I know which commands have been called
+# Eirlys.rs
+
+Anilist Discord Bot, rewritten in Rust. | First written in Python.
+
+## Features
+
+```markdown
+- [x] SQL Database integration
+- [ ] AniList functions (Search, User, Affinity, Database)
+- [ ] Discord Components integration
+- [ ] Caching (Scores, Animes, Mangas)
+- [ ] Code refactoring
+- [ ] Enhanced logging
+
+# Keys
+[x] = Implemented
+[ ] = Not Implemented
 ```
 
-# How to use
-```
+## Installation
+
+1. Clone the repository:
+
+```bash
 git clone https://github.com/tomosus/eirlys-rs
 cd eirlys-rs
+```
 
-touch .env # Creates .env file
-Inside of the .env include TOKEN="token" and DB_URL="DB URL (example: postgres://)
+2. Create a `.env` file:
 
+```bash
+touch .env
+```
+
+3. Open the `.env` file and add your Discord token and database URL:
+
+```env
+TOKEN="your-discord-token"
+DB_URL="your-database-url"
+```
+
+4. Run the bot:
+
+```bash
 cargo run
 ```
+
+## Project Structure
+
+- `src/api/`: Contains the code for interacting with the AniList API and the database.
+- `src/commands/`: Contains the code for handling Discord commands.
+- `src/general/`: Contains general utility functions.
