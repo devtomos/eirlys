@@ -7,7 +7,7 @@ from src.api.anilist.user import user_search
 from src.api.general.wide_functions import *
 from src.api.general.wide_components import AnilistComponentViewer
 
-games = ['CSS', 'Overwatch', 'Valorant', 'Apex Legends', 'Fortnite', 'CSGO', 'COD MW2 (2022)', 'Rainbow Six', 'Rust', 'Destiny 2', 'Minecraft']
+games = ['CSS', 'Overwatch', 'Valorant', 'Apex Legends', 'Fortnite', 'CSGO', 'COD MW2 (2022)', 'Rainbow Six', 'Rust', 'Destiny 2']
 
 class SlashGeneral(commands.Cog):
     def __init__(self, client):
@@ -21,7 +21,7 @@ class SlashGeneral(commands.Cog):
     async def slash_conv(self, interaction: Interaction, 
     game_one: str = SlashOption("from", description="The game you want to convert from", required=True, autocomplete=True),
     game_two: str = SlashOption("to", description="The game you want to convert to", required=True, autocomplete=True),
-    sens: float = SlashOption("sensitivity", description="Your sensiviity for the game", required=True),
+    sens: float = SlashOption("sensitivity", description="Your sensiviity for the game FLOAT TYPE", required=True),
     dpi: int = SlashOption("dpi", description="Your DPI for your mouse", required=True)):
 
         one = float(sens_games[game_one])

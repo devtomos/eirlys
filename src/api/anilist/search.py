@@ -194,6 +194,7 @@ async def stats(username: str, series_id: int) -> Dict:
 
     request = requests.post(Query.url, json={'query': Query.stats,
                                              'variables': {'userName': username, 'mediaId': series_id}})
+
     response = request.json()
     data = response['data']['MediaList']
 

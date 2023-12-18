@@ -47,7 +47,6 @@ sens_games = {
     'Rainbow Six': 0.00572957795,
     'Rust': 0.1125,
     'Destiny 2': 0.022,
-    'Minecraft': 0.00111,
 }
 
 """

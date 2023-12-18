@@ -39,9 +39,7 @@ for filename in os.listdir('./src/commands/text'):
             logger.error(f"{filename[:-3]} cog failed to load")
             logger.error(e)
 
-
 # ___________________________________________________________________________________________________________________#
-
 
 # Send message once Eirlys is ready.
 @client.event
@@ -51,7 +49,6 @@ async def on_ready():
     logger.info(f'{client.user.name} is online')
     await client.change_presence(status=nextcord.Status.online,
                                  activity=nextcord.Activity(name=f"Snowdrop", type=3))
-
 
 # ___________________________________________________________________________________________________________________#
 
