@@ -53,12 +53,29 @@ pub fn get_query(query_name: &str) -> String {
             score(format: POINT_10)
             progress
             repeat
+        }
+    }";
+
+    let relation_stats: &str = "
+    query ($id: Int, $page: Int, $perPage: Int, $search: String) {
+    Page (page: $page, perPage: $perPage) {
+        media (id: $id, search: $search) {
+            id
+            type
+            synonyms
+            title {
+                romaji
+                english
+                native
+                }
             }
-        }";
+        }
+    }";
 
     match query_name {
         "search" => search.to_string(),
         "user_stats" => user_stats.to_string(),
-        _ => String::from(""),
+        "relation_stats" => relation_stats.to_string(),
+        _ => panic!("Invalid Query Name"),
     }
 }

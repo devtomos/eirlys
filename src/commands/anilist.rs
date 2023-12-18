@@ -1,7 +1,8 @@
 use crate::api::access_db::anilist_guild_search;
-use crate::api::search_media::search;
+use crate::api::search_media::{search, relation_names};
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
+use serenity::builder::{CreateEmbed, CreateSelectMenuOption, CreateSelectMenuOptions, CreateSelectMenu, CreateActionRow};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 use std::env;
@@ -12,41 +13,36 @@ use serenity::model::application::interaction::Interaction;
 
 #[command]
 pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    info!(
-        "Running Anime Command -> Arguments Parsed: {}",
-        args.message()
-    );
-    let guild = msg.guild(&ctx.cache).unwrap();
     let media_name = args.message().to_string();
-    let guild_id = *guild.id.as_u64() as i64;
+    let all_media = relation_names(media_name, String::from("ANIME")).await;
 
-    let db_url = env::var("DB_URL").expect("Expected a DB URL in the environment file");
-    let pool = sqlx::postgres::PgPool::connect(&db_url).await?; // Connect to the database
-    let shared_pool = Arc::new(pool); // Create an Arc of the database connection
+    let mut select_menu = CreateSelectMenu::default();
+    let options = CreateSelectMenuOptions::default();
+    select_menu.min_values(1);
+    select_menu.placeholder("Select an anime");
+    select_menu.custom_id("anime_dropdown");
+    select_menu.max_values(1);
 
-    info!("Grabbing all members in guild with ID: {}", guild_id);
-    let db_check = anilist_guild_search(guild_id, shared_pool.clone()).await?;
-    info!("All Members Found with Guild: {:?}", db_check);
+    select_menu.options(|options| {
+        for media in all_media.0 {
+            let mut create_option = CreateSelectMenuOption::default();
+            create_option.label(&media);
+            create_option.value(&media);
+            options.add_option(create_option);
+        }
+        options
+    });
 
-    let search = search(media_name, String::from("ANIME"), db_check).await;
-    info!(
-        "Information Received From Search Function\nVector 1:\n{}\n\nVector 2:\n{}",
-        search.0.join("\n"),
-        search.1.join("\n")
-    );
+    info!("Options: {:?}", options);
 
-    match msg
-        .channel_id
-        .send_message(&ctx.http, |m| {
-            m.embed(|e| {
-                e.title(&search.1[0])
-                    .url(&search.1[1])
-                    .thumbnail(&search.1[2])
-                    .image(&search.1[3])
-                    .description(search.0.join("\n"))
+    let mut action_row = CreateActionRow::default();
+    let act = action_row.add_select_menu(select_menu);
+
+    match msg.channel_id.send_message(&ctx.http, |m| {
+            m.components(|c| {
+                c.add_action_row(act.to_owned())
             })
-        })
-        .await
+    }).await
     {
         Ok(_) => (),
         Err(e) => println!("Error sending message: {:?}", e),
@@ -65,7 +61,31 @@ impl EventHandler for ComponentHandler {
             let data = command.data.clone();
 
             if data.custom_id.as_str() == "anime_dropdown" {
-                todo!()
+                command.defer(&ctx.http).await.unwrap();
+                let guild_id = command.guild_id.unwrap();
+                let db_url = env::var("DB_URL").expect("Expected a DB URL in the environment file");
+                let pool = sqlx::postgres::PgPool::connect(&db_url).await.unwrap();
+                let shared_pool = Arc::new(pool);
+                let db_check = anilist_guild_search(guild_id.into(), shared_pool.clone()).await.unwrap();
+                let search = search(data.values[0].clone(), String::from("ANIME"), db_check).await;
+
+                let mut embed = CreateEmbed::default();
+                embed.title(&search.1[0])
+                    .url(&search.1[1])
+                    .thumbnail(&search.1[2])
+                    .image(&search.1[3])
+                    .description(search.0.join("\n"));
+
+                match command
+                    .edit_original_interaction_response(&ctx.http, |response| {
+                        response
+                            .add_embed(embed)
+                    })
+                    .await
+                {
+                    Ok(_) => (),
+                    Err(e) => println!("Error sending message: {:?}", e),
+                };
             }
         }
     }

@@ -1,11 +1,50 @@
 use crate::api::queries::get_query;
 use num_format::{Locale, ToFormattedString};
 use serde_json::json;
-use std::collections::HashMap;
+use std::{collections::HashMap, cmp};
 use tracing::info;
 
-pub async fn relation_names(media_id: i64) -> Vec<String> {
-    todo!()
+pub async fn relation_names(media_name: String, media_type: String) -> (Vec<String>, HashMap<String, String>) {
+    let client = reqwest::Client::new();
+    let query = get_query("relation_stats");
+    let json = json!({"query": query, "variables": {"search": media_name}});
+    let res = client
+        .post("https://graphql.anilist.co")
+        .json(&json)
+        .send()
+        .await;
+
+    let res = res.unwrap().json::<serde_json::Value>().await.unwrap();
+    let data = &res["data"]["Page"]["media"];
+
+    let mut relations_array = HashMap::new();
+    let mut relations_list = Vec::new();
+    let mut duplicates = Vec::new();
+
+    let media_name = media_name.to_lowercase();
+    for media_item in data.as_array().unwrap().iter().rev() {
+        let title_romaji = media_item["title"]["romaji"].as_str().unwrap_or_default().to_lowercase();
+        let title_english = media_item["title"]["english"].as_str().unwrap_or_default().to_lowercase();
+        let title_native = media_item["title"]["native"].as_str().unwrap_or_default().to_lowercase();
+        let synonyms = media_item["synonyms"].as_str().unwrap_or_default().to_lowercase();
+
+        if title_romaji.contains(&media_name) || title_english.contains(&media_name) || title_native.contains(&media_name) || synonyms.contains(&media_name) {
+            if media_item["type"].as_str().unwrap_or_default().to_uppercase() == media_type.to_uppercase() {
+                if duplicates.contains(&title_romaji) {
+                    relations_list.push(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]));
+                    relations_array.insert(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]), media_item["id"].as_str().unwrap_or_default().to_string());
+                } else {
+                    duplicates.push(title_romaji.clone());
+                    relations_list.push(title_romaji[..cmp::min(title_romaji.len(), 98)].to_string());
+                    relations_array.insert(title_romaji[..cmp::min(title_romaji.len(), 98)].to_string(), media_item["id"].as_str().unwrap_or_default().to_string());
+                }
+            }
+        }
+    }
+
+    info!("Relations List: {:?}", relations_list);
+
+    (relations_list, relations_array)
 }
 
 pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, String> {
@@ -116,7 +155,7 @@ pub async fn search(
 
     let new_banner = match banner {
         serde_json::Value::Null => "https://i.imgur.com/8QlQWvT.png",
-        _ => avatar.as_str().unwrap(),
+        _ => banner.as_str().unwrap(),
     };
 
     let mut lists: HashMap<&str, Vec<String>> = HashMap::new();
