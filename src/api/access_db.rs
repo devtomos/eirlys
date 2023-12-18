@@ -28,7 +28,7 @@ pub async fn anilist_guild_search(
         let all_members: Vec<String> = rows.iter().map(|row| row.get("anilist_name")).collect();
         info!("Returning query \n");
 
-        return all_members;
+        all_members
     });
     // Grab the output of the handle_user task
     let handle_output = handle_user.await.unwrap();

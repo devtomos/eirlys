@@ -73,6 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = Client::builder(&token, intents)
         .framework(framework)
         .event_handler(Handler)
+        .event_handler(ComponentHandler)
         .await
         .expect("Err creating client");
 

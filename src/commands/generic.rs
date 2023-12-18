@@ -44,7 +44,7 @@ pub async fn fifty(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     msg.reply(
         &ctx.http,
-        format!("{}: {}", user_input, answers[random_num]),
+        format!("**{}**: `{}`", user_input, answers[random_num]),
     )
     .await?;
     Ok(())
