@@ -7,6 +7,8 @@ use serenity::prelude::*;
 use std::env;
 use std::sync::Arc;
 use tracing::info;
+use serenity::async_trait;
+use serenity::model::application::interaction::Interaction;
 
 #[command]
 pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
@@ -41,7 +43,7 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     .url(&search.1[1])
                     .thumbnail(&search.1[2])
                     .image(&search.1[3])
-                    .description(format!("{}", search.0.join("\n")))
+                    .description(search.0.join("\n"))
             })
         })
         .await
@@ -51,4 +53,20 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     Ok(())
+}
+
+
+pub struct ComponentHandler;
+
+#[async_trait]
+impl EventHandler for ComponentHandler {
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::MessageComponent(command) = interaction {
+            let data = command.data.clone();
+
+            if data.custom_id.as_str() == "anime_dropdown" {
+                todo!()
+            }
+        }
+    }
 }

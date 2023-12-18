@@ -4,6 +4,10 @@ use serde_json::json;
 use std::collections::HashMap;
 use tracing::info;
 
+pub async fn relation_names(media_id: i64) -> Vec<String> {
+    todo!()
+}
+
 pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, String> {
     // Insert GrahpQL Query and Variables
     // Query: Search
@@ -26,7 +30,7 @@ pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, St
     info!("Received response from AniList | USER SEARCH");
 
     info!("Checking to see if data is null");
-    let _hash_data = match data {
+    match data {
         serde_json::Value::Null => {
             info!("Data is null, returning null hashmap\n");
             user_data.insert("status".to_string(), "null".to_string());
@@ -45,7 +49,7 @@ pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, St
         }
     };
 
-    return user_data;
+    user_data
 }
 
 pub async fn search(
@@ -105,6 +109,16 @@ pub async fn search(
     let avatar = &data["coverImage"]["extraLarge"];
     let banner = &data["bannerImage"];
 
+    let new_avatar = match avatar {
+        serde_json::Value::Null => "https://i.imgur.com/8QlQWvT.png",
+        _ => avatar.as_str().unwrap(),
+    };
+
+    let new_banner = match banner {
+        serde_json::Value::Null => "https://i.imgur.com/8QlQWvT.png",
+        _ => avatar.as_str().unwrap(),
+    };
+
     let mut lists: HashMap<&str, Vec<String>> = HashMap::new();
     lists.insert("Repeating", Vec::new());
     lists.insert("Current", Vec::new());
@@ -151,7 +165,7 @@ pub async fn search(
     }
 
     info!("Returning Information For {}", title);
-    let mut anime_results: Vec<String> = vec![
+    let mut anime_results: Vec<String> = [
         format!("`All Episodes :` **{}**", episodes),
         format!("`Status       :` **{}**", status),
         format!("`Avg Score    :` **{}%**", average_score),
@@ -183,15 +197,15 @@ pub async fn search(
         }
     }
 
-    let anime_info: Vec<String> = vec![
+    let anime_info: Vec<String> = [
         title.to_string(),
         url.to_string(),
-        avatar.to_string(),
-        banner.to_string(),
+        new_avatar.to_string(),
+        new_banner.to_string(),
     ]
     .iter()
     .map(|x| x.trim_matches('"').to_string())
     .collect();
 
-    return (anime_results, anime_info);
+    (anime_results, anime_info)
 }

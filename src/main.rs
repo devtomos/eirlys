@@ -19,6 +19,8 @@ use tracing::{error, info};
 use crate::commands::anilist::*;
 use crate::commands::generic::*;
 
+use crate::commands::anilist::ComponentHandler;
+
 pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
@@ -73,6 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = Client::builder(&token, intents)
         .framework(framework)
         .event_handler(Handler)
+        .event_handler(ComponentHandler)
         .await
         .expect("Err creating client");
 
