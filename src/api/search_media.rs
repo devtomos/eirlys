@@ -28,16 +28,14 @@ pub async fn relation_names(media_name: String, media_type: String) -> (Vec<Stri
         let title_native = media_item["title"]["native"].as_str().unwrap_or_default().to_lowercase();
         let synonyms = media_item["synonyms"].as_str().unwrap_or_default().to_lowercase();
 
-        if title_romaji.contains(&media_name) || title_english.contains(&media_name) || title_native.contains(&media_name) || synonyms.contains(&media_name) {
-            if media_item["type"].as_str().unwrap_or_default().to_uppercase() == media_type.to_uppercase() {
-                if duplicates.contains(&title_romaji) {
-                    relations_list.push(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]));
-                    relations_array.insert(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]), media_item["id"].as_str().unwrap_or_default().to_string());
-                } else {
-                    duplicates.push(title_romaji.clone());
-                    relations_list.push(title_romaji[..cmp::min(title_romaji.len(), 98)].to_string());
-                    relations_array.insert(title_romaji[..cmp::min(title_romaji.len(), 98)].to_string(), media_item["id"].as_str().unwrap_or_default().to_string());
-                }
+        if (title_romaji.contains(&media_name) || title_english.contains(&media_name) || title_native.contains(&media_name) || synonyms.contains(&media_name)) && media_item["type"].as_str().unwrap_or_default().to_uppercase() == media_type.to_uppercase() {
+            if duplicates.contains(&title_romaji) {
+                relations_list.push(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]));
+                relations_array.insert(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]), media_item["id"].as_str().unwrap_or_default().to_string());
+            } else {
+                duplicates.push(title_romaji.clone());
+                relations_list.push(title_romaji[..cmp::min(title_romaji.len(), 98)].to_string());
+                relations_array.insert(title_romaji[..cmp::min(title_romaji.len(), 98)].to_string(), media_item["id"].as_str().unwrap_or_default().to_string());
             }
         }
     }
@@ -120,7 +118,7 @@ pub async fn search(
     // Anime Information | Try to find a better alternative to joining genres (IF POSSIBLE)
     let anime_id = &data["id"];
     let title = &data["title"]["romaji"];
-    let status = &data["status"].to_string().replace("\"", "");
+    let status = &data["status"].to_string().replace('\"', "");
     let episodes = &data["episodes"];
     let genres: Vec<String> = data["genres"]
         .as_array()

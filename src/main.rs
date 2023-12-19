@@ -41,7 +41,7 @@ impl EventHandler for Handler {
 }
 
 #[group]
-#[commands(avatar, banner, sensitivity, anime, fifty)]
+#[commands(avatar, banner, sensitivity, anime, manga, fifty)]
 struct General;
 
 #[tokio::main]

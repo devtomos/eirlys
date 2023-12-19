@@ -52,6 +52,47 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
+#[command]
+pub async fn manga(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let media_name = args.message().to_string();
+    let all_media = relation_names(media_name, String::from("MANGA")).await;
+
+    let mut select_menu = CreateSelectMenu::default();
+    let options = CreateSelectMenuOptions::default();
+    select_menu.min_values(1);
+    select_menu.placeholder("Select a manga");
+    select_menu.custom_id("manga_dropdown");
+    select_menu.max_values(1);
+
+    // Set the label as    
+    select_menu.options(|options| {
+        for media in all_media.0 {
+            let mut create_option = CreateSelectMenuOption::default();
+            create_option.label(&media);
+            create_option.value(&media);
+            options.add_option(create_option);
+        }
+        options
+    });
+
+    info!("Options: {:?}", options);
+
+    let mut action_row = CreateActionRow::default();
+    let act = action_row.add_select_menu(select_menu);
+
+    match msg.channel_id.send_message(&ctx.http, |m| {
+            m.components(|c| {
+                c.add_action_row(act.to_owned())
+            })
+    }).await
+    {
+        Ok(_) => (),
+        Err(e) => println!("Error sending message: {:?}", e),
+    };
+
+    Ok(())
+}
+
 
 pub struct ComponentHandler;
 
