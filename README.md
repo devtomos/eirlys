@@ -6,12 +6,12 @@ Anilist Discord Bot, rewritten in Rust. | First written in Python.
 ## Features
 
 ```markdown
-- [x] SQL Database integration
-- [ ] AniList functions (Search, User, Affinity, Database)
-- [ ] Discord Components integration
-- [ ] Caching (Scores, Animes, Mangas)
-- [ ] Code refactoring
-- [ ] Enhanced logging
+[x] SQL Database integration
+[ ] AniList functions (Search, User, Affinity, Database)
+[ ] Discord Components integration
+[ ] Caching (Scores, Animes, Mangas)
+[ ] Code refactoring
+[ ] Enhanced logging
 
 # Keys
 [x] = Implemented

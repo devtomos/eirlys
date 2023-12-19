@@ -23,6 +23,7 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     select_menu.custom_id("anime_dropdown");
     select_menu.max_values(1);
 
+    // Set the label as    
     select_menu.options(|options| {
         for media in all_media.0 {
             let mut create_option = CreateSelectMenuOption::default();
@@ -60,14 +61,20 @@ impl EventHandler for ComponentHandler {
         if let Interaction::MessageComponent(command) = interaction {
             let data = command.data.clone();
 
-            if data.custom_id.as_str() == "anime_dropdown" {
+            if data.custom_id.as_str() == "anime_dropdown" || data.custom_id.as_str() == "manga_dropdown" {
                 command.defer(&ctx.http).await.unwrap();
                 let guild_id = command.guild_id.unwrap();
                 let db_url = env::var("DB_URL").expect("Expected a DB URL in the environment file");
                 let pool = sqlx::postgres::PgPool::connect(&db_url).await.unwrap();
                 let shared_pool = Arc::new(pool);
                 let db_check = anilist_guild_search(guild_id.into(), shared_pool.clone()).await.unwrap();
-                let search = search(data.values[0].clone(), String::from("ANIME"), db_check).await;
+                let mut media_type = "ANIME";
+
+                if data.custom_id.as_str() == "manga_dropdown" {
+                    media_type = "MANGA";
+                }
+
+                let search = search(data.values[0].clone(), media_type.to_string(), db_check).await;
 
                 let mut embed = CreateEmbed::default();
                 embed.title(&search.1[0])
