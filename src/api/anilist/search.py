@@ -30,6 +30,8 @@ async def search(media_name: str, media_type: str, db_members: list, is_componen
 
     response = requests.post(Query.url,
                              json={'query': Query.search, 'variables': variable_array})
+
+    print(response.json())
     request = response.json()
     data = request['data']['Media']
 
