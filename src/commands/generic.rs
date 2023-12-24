@@ -7,6 +7,8 @@ use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
+// ------------------------------------------------------------------------------------------------------------------------ //
+
 #[command]
 pub async fn sensitivity(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let from_game = args.single::<String>()?.to_uppercase();
@@ -35,6 +37,8 @@ pub async fn sensitivity(ctx: &Context, msg: &Message, mut args: Args) -> Comman
     Ok(())
 }
 
+// ------------------------------------------------------------------------------------------------------------------------ //
+
 #[command]
 #[aliases("50", "8ball", "8")]
 pub async fn fifty(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
@@ -49,6 +53,8 @@ pub async fn fifty(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     .await?;
     Ok(())
 }
+
+// ------------------------------------------------------------------------------------------------------------------------ //
 
 #[command]
 pub async fn avatar(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -72,6 +78,8 @@ pub async fn avatar(ctx: &Context, msg: &Message, mut args: Args) -> CommandResu
 
     Ok(())
 }
+
+// ------------------------------------------------------------------------------------------------------------------------ //
 
 #[command]
 pub async fn banner(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -102,3 +110,5 @@ pub async fn banner(ctx: &Context, msg: &Message, mut args: Args) -> CommandResu
 
     Ok(())
 }
+
+// ------------------------------------------------------------------------------------------------------------------------ //

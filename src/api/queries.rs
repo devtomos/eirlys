@@ -45,6 +45,56 @@ pub fn get_query(query_name: &str) -> String {
     }
     ";
 
+    let user: &str = "
+    query ($id: Int, $name: String) {
+    User(id: $id, name: $name) {
+        id
+        name
+        siteUrl
+        updatedAt
+        bannerImage
+        avatar {
+            large
+            medium
+        }
+        statistics {
+            anime {
+                count
+                meanScore
+                minutesWatched
+                episodesWatched
+                scores {
+                    score
+                    count
+                }
+                genres {
+                    count
+                    genre
+                    meanScore
+                    minutesWatched
+                }
+            }
+            manga {
+                count
+                meanScore
+                standardDeviation
+                chaptersRead
+                volumesRead
+                scores {
+                    score
+                    count
+                }
+                genres {
+                    count
+                    genre
+                    meanScore
+                    minutesWatched
+                }
+                }
+            }
+        }
+    }";
+
     let user_stats: &str = "
     query ($userName: String, $mediaId: Int) {
         MediaList(userName: $userName, mediaId: $mediaId) {
@@ -76,6 +126,7 @@ pub fn get_query(query_name: &str) -> String {
         "search" => search.to_string(),
         "user_stats" => user_stats.to_string(),
         "relation_stats" => relation_stats.to_string(),
+        "user" => user.to_string(),
         _ => panic!("Invalid Query Name"),
     }
 }

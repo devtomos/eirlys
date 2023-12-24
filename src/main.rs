@@ -6,47 +6,41 @@ use std::collections::HashSet;
 use std::env;
 use std::sync::Arc;
 
-use serenity::async_trait;
 use serenity::client::bridge::gateway::ShardManager;
 use serenity::framework::standard::macros::group;
 use serenity::framework::StandardFramework;
 use serenity::http::Http;
-use serenity::model::event::ResumedEvent;
-use serenity::model::gateway::Ready;
 use serenity::prelude::*;
-use tracing::{error, info};
+use tracing::error;
 
 use crate::commands::anilist::*;
 use crate::commands::generic::*;
-
 use crate::commands::anilist::ComponentHandler;
 
 pub struct ShardManagerContainer;
+pub struct DatabasePool;
 
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-struct Handler;
-
-#[async_trait]
-impl EventHandler for Handler {
-    async fn ready(&self, _: Context, ready: Ready) {
-        info!("[+] Logged in as {}", ready.user.name);
-    }
-
-    async fn resume(&self, _: Context, _: ResumedEvent) {
-        info!("Resumed");
-    }
+impl TypeMapKey for DatabasePool {
+    type Value = Arc<Mutex<sqlx::postgres::PgPool>>;
 }
 
+
+// ------------------------------------------------------------------------------------------------------------------------ //
+
 #[group]
-#[commands(avatar, banner, sensitivity, anime, manga, fifty)]
+#[commands(avatar, banner, sensitivity, anime, manga, fifty, user)]
 struct General;
 
-#[tokio::main]
+#[tokio::main]  
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().expect("Failed to load .env file"); // Load local environment file
+    let db_url = env::var("DB_URL").expect("Expected a DB URL in the environment file");
+    let pool = sqlx::postgres::PgPool::connect(&db_url).await.unwrap();
+    let shared_pool = Arc::new(Mutex::new(pool));
 
     // Initialize the logger
     tracing_subscriber::fmt::init();
@@ -74,14 +68,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let intents = GatewayIntents::all();
     let mut client = Client::builder(&token, intents)
         .framework(framework)
-        .event_handler(Handler)
         .event_handler(ComponentHandler)
         .await
-        .expect("Err creating client");
+        .expect("Error creating client");
 
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<DatabasePool>(shared_pool.clone());
     }
 
     let shard_manager = client.shard_manager.clone();

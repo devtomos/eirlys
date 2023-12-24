@@ -446,6 +446,7 @@ name = "eirlys_rs"
 version = "0.1.0"
 dependencies = [
  "dotenv",
+ "hrtime",
  "num-format",
  "rand",
  "reqwest",
@@ -798,6 +799,12 @@ checksum = "5444c27eef6923071f7ebcc33e3444508466a76f7a2b93da00ed6e19f30c1ddb"
 dependencies = [
  "windows-sys",
 ]
+
+[[package]]
+name = "hrtime"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a80870ee775a6b862265eb04a8d61d1b1ef8e4c423154a52ba6a1e3ff24836c"
 
 [[package]]
 name = "http"
