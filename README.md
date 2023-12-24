@@ -7,8 +7,8 @@ Anilist Discord Bot, rewritten in Rust. | First written in Python.
 
 ```markdown
 [x] SQL Database integration
-[ ] AniList functions (Search, User, Affinity, Database)
-[ ] Discord Components integration
+[ ] AniList functions (Search, User, Affinity, Database) - 75% done
+[x] Discord Components integration
 [ ] Caching (Scores, Animes, Mangas)
 [ ] Code refactoring
 [ ] Enhanced logging
