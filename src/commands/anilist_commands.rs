@@ -57,6 +57,7 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         info!("No arguments passed, searching for user in database.");
         username = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone()).await.unwrap();
 
+        // If the userw within the database is empty, not the one parsed through argument.
         if username.is_empty() {
             info!("{} is not within the database.", msg.author.name);
             msg.channel_id.say(&ctx.http, "You have not setup your anilist account. Please use the `setup` command.".to_string()).await?;

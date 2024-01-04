@@ -7,7 +7,7 @@ Anilist Discord Bot, rewritten in Rust. | First written in Python.
 
 ```markdown
 [x] SQL Database integration
-[ ] AniList functions (Search, User, Affinity, Database) - 90% done
+[x] AniList functions (Search, User, Affinity, Database) - 90% done
 [x] Discord Components integration
 [ ] Caching (Scores, Animes, Mangas)
 [x] Code refactoring
@@ -49,5 +49,10 @@ cargo run
 ## Project Structure
 
 - `src/api/`: Contains the code for interacting with the AniList API and the database.
+    - `/anilist_api.rs`: Contains all of the anilist backend functions (search_media, user_search, user_scores, relation_names)
+    - `/anilist_queries.rs`: Contains all the queries used for the Anilist API
+    - `/database_access.rs`: Contains all of the database functions to connect, update and insert data.
+
 - `src/commands/`: Contains the code for handling Discord commands.
-- `src/general/`: Contains general utility functions.
+    - `/anilist_commands.rs`: Contains all of the anilist commands, inwhich users can use.
+    - `/gen_commands.rs`: Contains generic commands, which users may use at time to time. (Banner, Avatar etc.)
