@@ -1,6 +1,5 @@
 mod api;
 mod commands;
-mod general;
 
 use std::collections::HashSet;
 use std::env;
@@ -13,9 +12,9 @@ use serenity::http::Http;
 use serenity::prelude::*;
 use tracing::error;
 
-use crate::commands::anilist::*;
-use crate::commands::generic::*;
-use crate::commands::anilist::ComponentHandler;
+use crate::commands::anilist_commands::*;
+use crate::commands::gen_commands::*;
+use crate::commands::anilist_commands::ComponentHandler;
 
 pub struct ShardManagerContainer;
 pub struct DatabasePool;
@@ -32,24 +31,23 @@ impl TypeMapKey for DatabasePool {
 // ------------------------------------------------------------------------------------------------------------------------ //
 
 #[group]
-#[commands(avatar, banner, sensitivity, anime, manga, fifty, user)]
+#[commands(avatar, banner, anime, manga, fifty, user, setup, server_info, server_avatar)]
 struct General;
 
 #[tokio::main]  
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().expect("Failed to load .env file"); // Load local environment file
-    let db_url = env::var("DB_URL").expect("Expected a DB URL in the environment file");
+    let db_url = env::var("DB_URL").expect("Expected a DB URL in the env file");
     let pool = sqlx::postgres::PgPool::connect(&db_url).await.unwrap();
     let shared_pool = Arc::new(Mutex::new(pool));
 
     // Initialize the logger
     tracing_subscriber::fmt::init();
-
     let token = env::var("TOKEN").expect("Expected a token in the environment file");
 
     let http = Http::new(&token);
 
-    // We will fetch your bot's owners and id
+    // Fetch the bot's owner and id
     let (owners, _bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();

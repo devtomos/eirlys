@@ -1,8 +1,8 @@
-use crate::api::access_db::{anilist_guild_search, anilist_user_search};
-use crate::api::search_media::{search, relation_names, user_search};
+use crate::api::access_db::{anilist_guild_search, anilist_user_search, user_check};
+use crate::api::anilist_api::{search, relation_names, user_search};
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
-use serenity::builder::{CreateEmbed, CreateSelectMenuOption, CreateSelectMenuOptions, CreateSelectMenu, CreateActionRow};
+use serenity::builder::{CreateEmbed, CreateSelectMenuOption, CreateSelectMenu, CreateActionRow};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 use serenity::model::gateway::Ready;
@@ -16,6 +16,30 @@ use serenity::model::application::interaction::Interaction;
 // ------------------------------------------------------------------------------------------------------------------------ //
 
 #[command]
+#[aliases("anisetup", "aniset", "anilist_setup", "setupani", "setupanilist")]
+pub async fn setup(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let username = args.message().to_string();
+    let data_read = ctx.data.read().await;
+    let pool = data_read.get::<DatabasePool>().expect("Expected DatabasePool in TypeMap.");
+    let pool = pool.lock().await;
+    let anilist_user = user_search(username).await;
+    let check = anilist_user_search(msg.author.id.into(), (*pool).clone().into()).await.unwrap();
+
+    if check.is_empty() {
+        info!("User is not within Database. Adding them now.");
+        user_check(msg.author.id.into(), msg.guild_id.unwrap().into(), anilist_user.1[0].clone(), anilist_user.1[4].parse().unwrap(), false, (*pool).clone().into()).await.unwrap();
+        let _ = msg.channel_id.say(&ctx.http, format!("`{}` has been set within the database for guild: `{}`", anilist_user.1[0], msg.guild_id.unwrap())).await;
+    } else {
+        info!("{} is already within Database", anilist_user.1[0]);
+        user_check(msg.author.id.into(), msg.guild_id.unwrap().into(), anilist_user.1[0].clone(), anilist_user.1[4].parse().unwrap(), true, (*pool).clone().into()).await.unwrap();
+        let _ = msg.channel_id.say(&ctx.http, format!("`{}` has been updated within the database", anilist_user.1[0])).await;
+    }
+
+    Ok(())
+}
+
+#[command]
+#[aliases("aniuser", "userani")]
 pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let mut username = args.message().to_string();
     let data_read = ctx.data.read().await;
@@ -40,6 +64,7 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .image(&user_search.1[2])
                 .description(user_search.0.join("\n"))
         })
+
     }).await
     {
         Ok(_) => (),
@@ -140,6 +165,7 @@ pub async fn manga(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 // ------------------------------------------------------------------------------------------------------------------------ //
 
+// Added this to anilist_commands to easily maintain the anime/manga dropdowns
 pub struct ComponentHandler;
 #[async_trait]
 impl EventHandler for ComponentHandler {

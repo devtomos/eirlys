@@ -1,2 +1,2 @@
-pub mod anilist;
-pub mod generic;
+pub mod anilist_commands;
+pub mod gen_commands;

@@ -1,4 +1,4 @@
-use crate::api::queries::get_query;
+use crate::api::anilist_queries::{get_query, QUERY_URL};
 use num_format::{Locale, ToFormattedString};
 use serde_json::json;
 use std::{collections::HashMap, cmp};
@@ -6,28 +6,42 @@ use tracing::info;
 
 // ------------------------------------------------------------------------------------------------------------------------ //
 
+// TODO: Create a trait for the anilist api functions so that I can use one reqwst client instead of creating a new one for each function
+// Easier to maintain code too.
+
+// REMINDER: Go through the code, add error handlers for when the API returns a null value
+// REMINDER: Add a check to see if the user has a list for the anime/manga they are searching for
+// REMINDER: Fix user_search and user (just merge them)
+// REMINDER: Fix the database functions (rename, add, remove, etc.) and then finish anilist_commands
+
+
 pub async fn relation_names(media_name: String, media_type: String) -> (Vec<String>, HashMap<String, String>) {
     let client = reqwest::Client::new();
     let query = get_query("relation_stats");
     let json = json!({"query": query, "variables": {"search": media_name}});
-    info!("Query has been inserted into JSON");
 
+    info!("Sending request to anilist API");
     let res = client
-        .post("https://graphql.anilist.co")
+        .post(QUERY_URL)
         .json(&json)
         .send()
         .await;
 
-    info!("Sent request to AniList | RELATION SEARCH");
-    let res = res.unwrap().json::<serde_json::Value>().await.unwrap();
+    let res = res.unwrap();
+
+    if res.status() != 200 {
+        info!("Anilist API returned a non-200 status code: {}", res.status());
+        return (Vec::new(), HashMap::new()); // Add check in anilist_commands to see if vec is empty
+    }
+
+    let res = res.json::<serde_json::Value>().await.unwrap();
     let data = &res["data"]["Page"]["media"];
-    info!("Received response from AniList | RELATIONS SEARCH");
 
     let mut relations_array = HashMap::new();
     let mut relations_list = Vec::new();
     let mut duplicates = Vec::new();
-    info!("Created relations array, list and duplicate list");
 
+    info!("Adding entires to their designated vectors/lists");    
     let media_name = media_name.to_lowercase();
     for media_item in data.as_array().unwrap().iter().rev() {
         let title_romaji = media_item["title"]["romaji"].as_str().unwrap_or_default().to_lowercase();
@@ -47,7 +61,9 @@ pub async fn relation_names(media_name: String, media_type: String) -> (Vec<Stri
         }
     }
 
-    info!("Returning relations list: {:?}\n", relations_list);
+    relations_list.reverse(); // Reverse the list to keep the most relevant results at the top
+    
+    info!("Returning relations list\n");
 
     (relations_list, relations_array)
 }
@@ -55,9 +71,6 @@ pub async fn relation_names(media_name: String, media_type: String) -> (Vec<Stri
 // ------------------------------------------------------------------------------------------------------------------------ //
 
 pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, String> {
-    // Insert GrahpQL Query and Variables
-    // Query: Search
-    // Variables: "userName": user_name, "mediaId": media_id
     let client = reqwest::Client::new();
     let query = get_query("user_stats");
     let mut user_data: HashMap<String, String> = HashMap::new();
@@ -65,7 +78,7 @@ pub async fn user_scores(user_name: String, media_id: i64) -> HashMap<String, St
     info!("Query has been inserted into JSON");
 
     let res = client
-        .post("https://graphql.anilist.co")
+        .post(QUERY_URL)
         .json(&json)
         .send()
         .await;
@@ -114,7 +127,7 @@ pub async fn search(
     info!("Query has been inserted into JSON");
 
     let res = client
-        .post("https://graphql.anilist.co")
+        .post(QUERY_URL)
         .json(&json)
         .send()
         .await;
@@ -212,7 +225,6 @@ pub async fn search(
         }
     }
 
-    info!("Creating anime results");
     let mut anime_results: Vec<String> = [
         format!("`All Episodes :` **{}**", episodes),
         format!("`Status       :` **{}**", status),
@@ -236,7 +248,6 @@ pub async fn search(
         "Dropped",
     ];
 
-    info!("Iterating through labels and adding any that contain data");
     for label in &labels {
         if let Some(vec) = lists.get_mut(*label) {
             info!("{}: {:?}", label, vec);
@@ -270,7 +281,7 @@ pub async fn user_search(username: String) -> (Vec<String>, Vec<String>) {
     info!("Query has been inserted into JSON");
 
     let res = client
-        .post("https://graphql.anilist.co")
+        .post(QUERY_URL)
         .json(&json)
         .send()
         .await;
@@ -280,6 +291,7 @@ pub async fn user_search(username: String) -> (Vec<String>, Vec<String>) {
     let data = &res["data"]["User"];
     info!("Received response from AniList | USER SEARCH");
 
+    let user_id = &data["id"];
     let user_name = &data["name"];
     let user_url = &data["siteUrl"];
     let user_banner = &data["bannerImage"];
@@ -333,6 +345,7 @@ pub async fn user_search(username: String) -> (Vec<String>, Vec<String>) {
         user_url.to_string(),
         new_banner.to_string(),
         new_avatar.to_string(),
+        user_id.to_string(),
     ].iter()
     .map(|x| x.trim_matches('"').to_string())
     .collect();

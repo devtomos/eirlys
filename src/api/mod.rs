@@ -1,3 +1,3 @@
 pub mod access_db;
-pub mod queries;
-pub mod search_media;
+pub mod anilist_queries;
+pub mod anilist_api;

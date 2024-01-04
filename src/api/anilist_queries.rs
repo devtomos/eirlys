@@ -1,3 +1,5 @@
+pub const QUERY_URL: &str = "https://graphql.anilist.co";
+
 pub fn get_query(query_name: &str) -> String {
     let search: &str = "
     query ($id: Int, $search: String, $type: MediaType) {
