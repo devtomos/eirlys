@@ -31,7 +31,10 @@ impl TypeMapKey for DatabasePool {
 // ------------------------------------------------------------------------------------------------------------------------ //
 
 #[group]
-#[commands(avatar, banner, anime, manga, fifty, user, setup, server_info, server_avatar)]
+#[commands(
+    avatar, banner, anime, manga, fifty, user, 
+    setup, server_info, server_avatar
+)]
 struct General;
 
 #[tokio::main]  

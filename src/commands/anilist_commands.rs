@@ -1,5 +1,8 @@
 use crate::api::access_db::{anilist_guild_search, anilist_user_search, user_check};
-use crate::api::anilist_api::{search, relation_names, user_search};
+use crate::api::anilist_api::{search_media, relation_names, user_search};
+use crate::DatabasePool;
+use tracing::info;
+
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::builder::{CreateEmbed, CreateSelectMenuOption, CreateSelectMenu, CreateActionRow};
@@ -8,12 +11,13 @@ use serenity::prelude::*;
 use serenity::model::gateway::Ready;
 use serenity::model::user::OnlineStatus;
 use serenity::model::prelude::Activity;
-use crate::DatabasePool;
-use tracing::info;
 use serenity::async_trait;
 use serenity::model::application::interaction::Interaction;
+use serenity::utils::Colour;
 
 // ------------------------------------------------------------------------------------------------------------------------ //
+
+// REMINDER: Fix the database functions (rename, add, remove, etc.) and then finish anilist_commands 
 
 #[command]
 #[aliases("anisetup", "aniset", "anilist_setup", "setupani", "setupanilist")]
@@ -22,21 +26,21 @@ pub async fn setup(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<DatabasePool>().expect("Expected DatabasePool in TypeMap.");
     let pool = pool.lock().await;
-    let anilist_user = user_search(username).await;
+    let _anilist_user = user_search(username).await;
     let check = anilist_user_search(msg.author.id.into(), (*pool).clone().into()).await.unwrap();
 
     if check.is_empty() {
-        info!("User is not within Database. Adding them now.");
-        user_check(msg.author.id.into(), msg.guild_id.unwrap().into(), anilist_user.1[0].clone(), anilist_user.1[4].parse().unwrap(), false, (*pool).clone().into()).await.unwrap();
-        let _ = msg.channel_id.say(&ctx.http, format!("`{}` has been set within the database for guild: `{}`", anilist_user.1[0], msg.guild_id.unwrap())).await;
+        info!("{} is not within the database. Adding them.", msg.author.name);
+        todo!();
     } else {
-        info!("{} is already within Database", anilist_user.1[0]);
-        user_check(msg.author.id.into(), msg.guild_id.unwrap().into(), anilist_user.1[0].clone(), anilist_user.1[4].parse().unwrap(), true, (*pool).clone().into()).await.unwrap();
-        let _ = msg.channel_id.say(&ctx.http, format!("`{}` has been updated within the database", anilist_user.1[0])).await;
+        info!("{} is already within the database. Updating them.", msg.author.name);
+        todo!();
     }
 
-    Ok(())
+    Ok(())  
 }
+
+// ------------------------------------------------------------------------------------------------------------------------ //
 
 #[command]
 #[aliases("aniuser", "userani")]
@@ -47,15 +51,23 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let pool = pool.lock().await;
 
     if username.is_empty() {
-        info!("Username Argument is empty, searching in Database.");
+        info!("No arguments passed, searching for user in database.");
         username = anilist_user_search(msg.author.id.into(), (*pool).clone().into()).await.unwrap();
-        info!("Username: {}", username);
-    } else {
-        info!("Username: {}", username);
+
+        if username.is_empty() {
+            info!("{} is not within the database.", msg.author.name);
+            msg.channel_id.say(&ctx.http, format!("You have not setup your anilist account. Please use the `setup` command.")).await?;
+            return Ok(());
+        }
+    }
+    let user_search = user_search(username.clone()).await;
+    
+    if user_search.0.is_empty() {
+        info!("{} was not found in the Anilist API.", username);
+        msg.channel_id.say(&ctx.http, format!("`{}` was not found in the Anilist API. Did you misspell their name?", username)).await?;
+        return Ok(());
     }
 
-    let user_search = user_search(username).await;
-    
     match msg.channel_id.send_message(&ctx.http, |m| {
         m.embed(|e| {
             e.title(&user_search.1[0])
@@ -68,7 +80,17 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }).await
     {
         Ok(_) => (),
-        Err(e) => println!("Error sending message: {:?}", e),
+        Err(e) => {
+            println!("Error sending message: {:?}", e);
+            msg.channel_id.send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title("An Error Occurred")
+                        .description("There was an error when sending the dropdown menu. Alert the owner, or try again later.")
+                        .color(Colour::RED)
+                
+                })
+            }).await?;
+        },
     };
 
     Ok(())
@@ -79,18 +101,21 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[command]
 pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let media_name = args.message().to_string();
-    info!("Searching for anime with name: {}", media_name);
 
-    let all_media = relation_names(media_name, String::from("ANIME")).await;
+    let all_media = relation_names(media_name.clone(), String::from("ANIME")).await;
 
-    info!("Creating select menu");
+    if all_media.0.is_empty() {
+        info!("Nothing related or close to {} was found.", &media_name);
+        msg.channel_id.say(&ctx.http, format!("There are no relations to the anime `{}`. Please try another anime or keyword.", &media_name)).await?;
+        return Ok(());
+    }
+
     let mut select_menu = CreateSelectMenu::default();
     select_menu.min_values(1);
     select_menu.placeholder("Select an anime");
     select_menu.custom_id("anime_dropdown");
     select_menu.max_values(1);
 
-    info!("Adding options to select menu");
     select_menu.options(|options| {
         for media in all_media.0 {
             let mut create_option = CreateSelectMenuOption::default();
@@ -100,10 +125,12 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
         options
     });
+    info!("Added all options to the select menu.");
 
     let mut action_row = CreateActionRow::default();
     let act = action_row.add_select_menu(select_menu);
 
+    info!("Sending select menu with anime options.");
     match msg.channel_id.send_message(&ctx.http, |m| {
             m.components(|c| {
                 c.add_action_row(act.to_owned())
@@ -111,10 +138,19 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }).await
     {
         Ok(_) => (),
-        Err(e) => println!("Error sending message: {:?}", e),
+        Err(e) => {
+            println!("Error sending message: {:?}", e);
+            msg.channel_id.send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title("An Error Occurred")
+                        .description("There was an error when sending the dropdown menu. Alert the owner, or try again later.")
+                        .color(Colour::RED)
+                
+                })
+            }).await?;
+        },
     };
-    info!("Message has been sent\n");
-
+    
     Ok(())
 }
 
@@ -123,19 +159,21 @@ pub async fn anime(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[command]
 pub async fn manga(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let media_name = args.message().to_string();
-    info!("Searching for manga with name: {}", media_name);
-    
-    let all_media = relation_names(media_name, String::from("MANGA")).await;
 
-    info!("Creating select menu");
+    let all_media = relation_names(media_name.clone(), String::from("MANGA")).await;
+
+    if all_media.0.is_empty() {
+        info!("Nothing related or close to {} was found.", &media_name);
+        msg.channel_id.say(&ctx.http, format!("There are no relations to the manga `{}`. Please try another manga or keyword.", &media_name)).await?;
+        return Ok(());
+    }
+
     let mut select_menu = CreateSelectMenu::default();
     select_menu.min_values(1);
     select_menu.placeholder("Select a manga");
     select_menu.custom_id("manga_dropdown");
     select_menu.max_values(1);
 
-    info!("Adding options to select menu");
-    // Set the label as id :: This may not work
     select_menu.options(|options| {
         for media in all_media.0 {
             let mut create_option = CreateSelectMenuOption::default();
@@ -145,10 +183,12 @@ pub async fn manga(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
         options
     });
+    info!("Added all options to the select menu.");
 
     let mut action_row = CreateActionRow::default();
     let act = action_row.add_select_menu(select_menu);
 
+    info!("Sending select menu with manga options.");
     match msg.channel_id.send_message(&ctx.http, |m| {
             m.components(|c| {
                 c.add_action_row(act.to_owned())
@@ -156,10 +196,20 @@ pub async fn manga(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }).await
     {
         Ok(_) => (),
-        Err(e) => println!("Error sending message: {:?}", e),
-    };
-    info!("Message has been sent\n");
+        Err(e) => {
+            println!("Error sending message: {:?}", e);
+            msg.channel_id.send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title("An Error Occurred")
+                        .description("There was an error when sending the dropdown menu. Alert the owner, or try again later.")
+                        .color(Colour::RED)
+                
+                })
+            }).await?;
 
+        },
+    };
+    
     Ok(())
 }
 
@@ -183,12 +233,11 @@ impl EventHandler for ComponentHandler {
                 info!("Command {:?} was used ", data.custom_id);
 
                 command.defer(&ctx.http).await.unwrap();
-                let guild_id = command.guild_id.unwrap();
+                let guild_id = command.guild_id.unwrap_or(GuildId(0));
+
                 let data_read = ctx.data.read().await;
                 let pool = data_read.get::<DatabasePool>().expect("Expected DatabasePool in TypeMap.");
                 let pool = pool.lock().await;
-
-                info!("Searching for guild with ID: {}", guild_id);
 
                 let db_check = anilist_guild_search(guild_id.into(), (*pool).clone().into()).await.unwrap();
                 let mut media_type = "ANIME";
@@ -197,8 +246,8 @@ impl EventHandler for ComponentHandler {
                     media_type = "MANGA";
                 }
                 
-                info!("Searching for {:?} with name: {}", &media_type, &data.values[0]);
-                let search = search(data.values[0].clone(), media_type.to_string(), db_check).await;
+                info!("Searching for {} in the Anilist API.", data.values[0]);
+                let search = search_media(data.values[0].clone(), media_type.to_string(), db_check).await;
 
                 let mut embed = CreateEmbed::default();
                 embed.title(&search.1[0])
@@ -207,8 +256,7 @@ impl EventHandler for ComponentHandler {
                     .image(&search.1[3])
                     .description(search.0.join("\n"));
 
-                info!("Created embed");
-
+                info!("Editing message with {}'s information.", data.values[0]);
                 match command
                     .edit_original_interaction_response(&ctx.http, |response| {
                         response
@@ -219,7 +267,6 @@ impl EventHandler for ComponentHandler {
                     Ok(_) => (),
                     Err(e) => println!("Error sending message: {:?}", e),
                 };
-                info!("Message has been edited\n");
             }
         }
     }

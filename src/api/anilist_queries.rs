@@ -132,3 +132,30 @@ pub fn get_query(query_name: &str) -> String {
         _ => panic!("Invalid Query Name"),
     }
 }
+
+
+
+pub fn return_time(mut seconds: u64, granularity: usize) -> String {
+    let intervals = [
+        ("weeks", 604800),
+        ("days", 86400),
+        ("hours", 3600),
+        ("minutes", 60),
+        ("seconds", 1),
+    ];
+
+    let mut result = Vec::new();
+    for &(name, count) in &intervals {
+        let value = seconds / count;
+        if value > 0 {
+            seconds -= value * count;
+            let name = if value == 1 {
+                name.trim_end_matches('s')
+            } else {
+                name
+            };
+            result.push(format!("{} {}", value, name));
+        }
+    }
+    result.into_iter().take(granularity).collect::<Vec<_>>().join(", ")
+}
