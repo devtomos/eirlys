@@ -224,7 +224,7 @@ pub struct ComponentHandler;
 #[async_trait]
 impl EventHandler for ComponentHandler {
     async fn ready(&self, ctx: Context, ready: Ready) {
-        let activity = Activity::playing("Serenity RS");
+        let activity = Activity::playing("with the Anilist API");
         ctx.set_presence(Some(activity), OnlineStatus::Online).await;
         info!("{} is connected!", ready.user.name);
     }
