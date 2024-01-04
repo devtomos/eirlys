@@ -4,6 +4,7 @@ mod commands;
 use std::collections::HashSet;
 use std::env;
 use std::sync::Arc;
+use std::net::TcpListener;
 
 use serenity::client::bridge::gateway::ShardManager;
 use serenity::framework::standard::macros::group;
@@ -39,6 +40,11 @@ struct General;
 
 #[tokio::main]  
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    // Bind a port so that heroku doesn't close
+    let _listener = TcpListener::bind(format!("0.0.0.0:{}", env::var("PORT").unwrap())).unwrap();
+    
+
     dotenv::dotenv().expect("Failed to load .env file"); // Load local environment file
     let db_url = env::var("DB_URL").expect("Expected a DB URL in the env file");
     let pool = sqlx::postgres::PgPool::connect(&db_url).await.unwrap();
@@ -63,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create the framework
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("."))
+        .configure(|c| c.owners(owners).prefix("#"))
         .group(&GENERAL_GROUP);
 
     let intents = GatewayIntents::all();

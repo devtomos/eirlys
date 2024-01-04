@@ -1,1 +1,1 @@
-worker: ./target/release/eirlys_rs
+web: ./target/release/eirlys_rs
