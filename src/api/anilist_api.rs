@@ -6,8 +6,6 @@ use tracing::info;
 
 // ------------------------------------------------------------------------------------------------------------------------ //
 
-// TODO: Create a trait for the anilist api functions so that I can use one reqwst client instead of creating a new one for each function
-// Easier to maintain code too.
 
 /*
 Relation_names: 

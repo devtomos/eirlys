@@ -1,4 +1,4 @@
-use crate::api::access_db::{anilist_guild_search, anilist_user_search, user_check};
+use crate::api::database_access::{lookup_guild, lookup_user, create_user, update_user};
 use crate::api::anilist_api::{search_media, relation_names, user_search};
 use crate::DatabasePool;
 use tracing::info;
@@ -17,7 +17,7 @@ use serenity::utils::Colour;
 
 // ------------------------------------------------------------------------------------------------------------------------ //
 
-// REMINDER: Fix the database functions (rename, add, remove, etc.) and then finish anilist_commands 
+// TODO: Create a trait for the anilist api functions so that I can use one reqwst client instead of creating a new one for each function
 
 #[command]
 #[aliases("anisetup", "aniset", "anilist_setup", "setupani", "setupanilist")]
@@ -26,15 +26,18 @@ pub async fn setup(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data_read = ctx.data.read().await;
     let pool = data_read.get::<DatabasePool>().expect("Expected DatabasePool in TypeMap.");
     let pool = pool.lock().await;
-    let _anilist_user = user_search(username).await;
-    let check = anilist_user_search(msg.author.id.into(), (*pool).clone().into()).await.unwrap();
 
-    if check.is_empty() {
+    let anilist_user = user_search(username).await;
+    let check_user_db = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone().into()).await.unwrap();
+
+    if check_user_db.is_empty() {
         info!("{} is not within the database. Adding them.", msg.author.name);
-        todo!();
+        create_user(msg.author.id.into(), msg.guild_id.unwrap().into(), anilist_user.1[0].clone(), anilist_user.1[4].parse().unwrap(), (*pool).clone().into()).await.unwrap();
+        msg.channel_id.say(&ctx.http, format!("`{}` has been added to the database.", msg.author.name)).await?;
     } else {
         info!("{} is already within the database. Updating them.", msg.author.name);
-        todo!();
+        update_user(msg.author.id.into(), anilist_user.1[4].parse().unwrap(), anilist_user.1[0].clone(), (*pool).clone().into()).await.unwrap();
+        msg.channel_id.say(&ctx.http, format!("`{}` has been updated in the database.", msg.author.name)).await?;
     }
 
     Ok(())  
@@ -52,7 +55,7 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     if username.is_empty() {
         info!("No arguments passed, searching for user in database.");
-        username = anilist_user_search(msg.author.id.into(), (*pool).clone().into()).await.unwrap();
+        username = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone().into()).await.unwrap();
 
         if username.is_empty() {
             info!("{} is not within the database.", msg.author.name);
@@ -239,7 +242,7 @@ impl EventHandler for ComponentHandler {
                 let pool = data_read.get::<DatabasePool>().expect("Expected DatabasePool in TypeMap.");
                 let pool = pool.lock().await;
 
-                let db_check = anilist_guild_search(guild_id.into(), (*pool).clone().into()).await.unwrap();
+                let db_check = lookup_guild(guild_id.into(), (*pool).clone().into()).await.unwrap();
                 let mut media_type = "ANIME";
 
                 if data.custom_id.as_str() == "manga_dropdown" {
