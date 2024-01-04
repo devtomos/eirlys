@@ -28,15 +28,15 @@ pub async fn setup(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let pool = pool.lock().await;
 
     let anilist_user = user_search(username).await;
-    let check_user_db = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone().into()).await.unwrap();
+    let check_user_db = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone()).await.unwrap();
 
     if check_user_db.is_empty() {
         info!("{} is not within the database. Adding them.", msg.author.name);
-        create_user(msg.author.id.into(), msg.guild_id.unwrap().into(), anilist_user.1[0].clone(), anilist_user.1[4].parse().unwrap(), (*pool).clone().into()).await.unwrap();
+        create_user(msg.author.id.into(), msg.guild_id.unwrap().into(), anilist_user.1[0].clone(), anilist_user.1[4].parse().unwrap(), (*pool).clone()).await.unwrap();
         msg.channel_id.say(&ctx.http, format!("`{}` has been added to the database.", msg.author.name)).await?;
     } else {
         info!("{} is already within the database. Updating them.", msg.author.name);
-        update_user(msg.author.id.into(), anilist_user.1[4].parse().unwrap(), anilist_user.1[0].clone(), (*pool).clone().into()).await.unwrap();
+        update_user(msg.author.id.into(), anilist_user.1[4].parse().unwrap(), anilist_user.1[0].clone(), (*pool).clone()).await.unwrap();
         msg.channel_id.say(&ctx.http, format!("`{}` has been updated in the database.", msg.author.name)).await?;
     }
 
@@ -55,11 +55,11 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     if username.is_empty() {
         info!("No arguments passed, searching for user in database.");
-        username = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone().into()).await.unwrap();
+        username = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone()).await.unwrap();
 
         if username.is_empty() {
             info!("{} is not within the database.", msg.author.name);
-            msg.channel_id.say(&ctx.http, format!("You have not setup your anilist account. Please use the `setup` command.")).await?;
+            msg.channel_id.say(&ctx.http, "You have not setup your anilist account. Please use the `setup` command.".to_string()).await?;
             return Ok(());
         }
     }
@@ -242,7 +242,7 @@ impl EventHandler for ComponentHandler {
                 let pool = data_read.get::<DatabasePool>().expect("Expected DatabasePool in TypeMap.");
                 let pool = pool.lock().await;
 
-                let db_check = lookup_guild(guild_id.into(), (*pool).clone().into()).await.unwrap();
+                let db_check = lookup_guild(guild_id.into(), (*pool).clone()).await.unwrap();
                 let mut media_type = "ANIME";
 
                 if data.custom_id.as_str() == "manga_dropdown" {
