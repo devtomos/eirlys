@@ -19,7 +19,7 @@ HOW IT WORKS:
 pub async fn relation_names(media_name: String, media_type: String) -> (Vec<String>, HashMap<String, String>) {
     let client = reqwest::Client::new();
     let query = get_query("relation_stats");
-    let json = json!({"query": query, "variables": {"search": media_name}});
+    let json = json!({"query": query, "variables": {"search": media_name, "type": media_type.to_uppercase()}});
 
     let res = client
         .post(QUERY_URL)
@@ -44,13 +44,14 @@ pub async fn relation_names(media_name: String, media_type: String) -> (Vec<Stri
    
     info!("Adding results to the relations list and hashmap.");
     let media_name = media_name.to_uppercase();
+    let media_name_uppercase: Vec<_> = media_name.split(" ").collect();
     for media_item in data.as_array().unwrap().iter().rev() {
         let title_romaji = media_item["title"]["romaji"].as_str().unwrap_or_default().to_uppercase();
         let title_english = media_item["title"]["english"].as_str().unwrap_or_default().to_uppercase();
         let title_native = media_item["title"]["native"].as_str().unwrap_or_default().to_uppercase();
         let synonyms = media_item["synonyms"].as_str().unwrap_or_default().to_uppercase();
 
-        if (title_romaji.contains(&media_name) || title_english.contains(&media_name) || title_native.contains(&media_name) || synonyms.contains(&media_name)) && media_item["type"].as_str().unwrap_or_default().to_uppercase() == media_type.to_uppercase() {
+        if title_romaji.contains(&media_name_uppercase[0]) || title_english.contains(&media_name_uppercase[0]) || title_native.contains(&media_name_uppercase[0]) || synonyms.contains(&media_name_uppercase[0]) {
             if duplicates.contains(&title_romaji) {
                 relations_list.push(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]));
                 relations_array.insert(format!("[{}]", &title_romaji[..cmp::min(title_romaji.len(), 95)]), media_item["id"].as_str().unwrap_or_default().to_string());
@@ -267,8 +268,14 @@ pub async fn search_media(
                                 "**{}** - `{} | {}/10`",
                                 member, user_data["progress"], user_data["score"]
                             ));
+                        } else if status == "Dropped" || status == "Paused" {
+                            list.push(format!("**{}** - `{} | {}/10`", member, user_data["progress"], user_data["score"]));
                         } else {
-                            list.push(format!("**{}** - `{}/10`", member, user_data["score"]));
+                            list.push(format!(
+                                "**{}** - `{}/10`",
+                                member, user_data["score"]
+                            ));
+                        
                         }
                     }
                 }
