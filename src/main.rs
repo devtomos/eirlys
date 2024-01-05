@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create the framework
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("#"))
+        .configure(|c| c.owners(owners).prefix("."))
         .group(&GENERAL_GROUP);
 
     let intents = GatewayIntents::all();
