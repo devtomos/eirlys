@@ -56,7 +56,6 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if username.is_empty() {
         info!("No arguments passed, searching for user in database.");
         username = lookup_user(msg.author.id.into(), msg.guild_id.unwrap().into(), (*pool).clone()).await.unwrap();
-
         // If the username within the database is empty, not the one parsed through argument.
         if username.is_empty() {
             info!("{} is not within the database.", msg.author.name);

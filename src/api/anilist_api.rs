@@ -19,8 +19,8 @@ HOW IT WORKS:
 pub async fn relation_names(media_name: String, media_type: String) -> (Vec<String>, HashMap<String, String>) {
     let client = reqwest::Client::new();
     let query = get_query("relation_stats");
-    let json = json!({"query": query, "variables": {"search": media_name, "type": media_type.to_uppercase()}});
 
+    let json = json!({"query": query, "variables": {"search": media_name, "type": media_type.to_uppercase()}});
     let res = client
         .post(QUERY_URL)
         .json(&json)
