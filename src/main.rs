@@ -41,9 +41,8 @@ struct General;
 #[tokio::main]  
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    // Bind a port so that heroku doesn't close
+    // Bind a port so that heroku doesn't close the connection
     let _listener = TcpListener::bind(format!("0.0.0.0:{}", env::var("PORT").unwrap())).unwrap();
-    
 
     dotenv::dotenv().expect("Failed to load .env file"); // Load local environment file
     let db_url = env::var("DB_URL").expect("Expected a DB URL in the env file");
@@ -69,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create the framework
     let framework = StandardFramework::new()
-        .configure(|c| c.owners(owners).prefix("#"))
+        .configure(|c| c.owners(owners).prefix("."))
         .group(&GENERAL_GROUP);
 
     let intents = GatewayIntents::all();
