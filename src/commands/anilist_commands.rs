@@ -78,6 +78,7 @@ pub async fn user(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .thumbnail(&user_search.1[3])
                 .image(&user_search.1[2])
                 .description(user_search.0.join("\n"))
+                .colour(Colour::BLURPLE)
         })
 
     }).await
@@ -257,7 +258,8 @@ impl EventHandler for ComponentHandler {
                     .url(&search.1[1])
                     .thumbnail(&search.1[2])
                     .image(&search.1[3])
-                    .description(search.0.join("\n"));
+                    .description(search.0.join("\n"))
+                    .colour(Colour::BLURPLE);
 
                 info!("Editing message with {}'s information.", data.values[0]);
                 match command

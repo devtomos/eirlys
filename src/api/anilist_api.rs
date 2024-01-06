@@ -159,7 +159,10 @@ pub async fn search_media(
     let anime_id = &data["id"];
     let title = &data["title"]["romaji"];
     let status = &data["status"].to_string().replace('\"', "");
-    let episodes = &data["episodes"];
+    let all_episodes = &data["episodes"];
+    let current_episode = &data["airingSchedule"]["nodes"][0]["episode"];
+    let airing_time = &data["airingSchedule"]["nodes"][0]["timeUntilAiring"];
+
     let genres: Vec<String> = data["genres"]
         .as_array()
         .expect("Failed to convert genres to array")
@@ -196,9 +199,27 @@ pub async fn search_media(
         _ => banner.as_str().unwrap(),
     };
 
+    info!("Current Episode: {}", &current_episode);
+    info!("Airing Time: {}", &airing_time);
+
+    let current_episode = match current_episode {
+        serde_json::Value::Null => "null".to_string(),
+        _ => current_episode.to_string(),
+    };
+
+    let airing_time = match airing_time {
+        serde_json::Value::Null => "null".to_string(),
+        _ => return_time(airing_time.as_u64().unwrap(), 2),
+    };
+
+    info!("Current Episode: {}", &current_episode);
+    info!("Airing Time: {}", &airing_time);
+
     info!("Packing up the data into two vectors.");
     let mut anime_results: Vec<String> = [
-        format!("`All Episodes :` **{}**", episodes),
+        format!("`All Episodes :` **{}**", all_episodes),
+        format!("`Curr Episode :` **{}**", current_episode),
+        format!("`Airing Time  :` **{}**", airing_time),
         format!("`Status       :` **{}**", status),
         format!("`Avg Score    :` **{}%**", average_score),
         format!("`Mean Score   :` **{}%**", mean_score),
