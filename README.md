@@ -23,7 +23,7 @@ Anilist Discord Bot, rewritten in Rust. | First written in Python.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/tomosus/eirlys-rs
+git clone https://github.com/tmqf/eirlys
 cd eirlys-rs
 ```
 
